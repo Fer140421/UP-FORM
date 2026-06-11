@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   username: string;
-  role: 'Administrador';
+  rol: 'Administrador';
   name: string;
 }
 
@@ -21,7 +21,8 @@ export interface Postulante {
   direccion: string;
   documentoIdentidad: string;
   certificadoLenguaOriginaria: string;
-  libretaMilitar?: string;
+  poseeLibreta?: string;
+  archivo?: string; // Corresponds to military service file
   certificados: Certificado[];
   formacionesAcademicas: FormacionAcademica[];
   experienciasLaborales: ExperienciaLaboral[];
@@ -40,6 +41,7 @@ export interface FormacionAcademica {
   institucion: string;
   tituloObtenido: string;
   fecha: string;
+  archivo: string;
 }
 
 export interface ExperienciaLaboral {
@@ -49,6 +51,7 @@ export interface ExperienciaLaboral {
   fechaInicio: string;
   fechaFin: string;
   tiempoTrabajado: string;
+  archivo: string;
 }
 
 export interface Institucion {

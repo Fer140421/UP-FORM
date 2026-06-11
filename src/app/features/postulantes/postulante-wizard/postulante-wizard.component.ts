@@ -18,9 +18,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { DateTime } from 'luxon';
 import { PostulanteRepository } from '../../../core/repositories/postulante.repository';
+import { CloudinaryService } from '../../../core/services/cloudinary.service';
 import { Router } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
+import { forkJoin, Observable, of } from 'rxjs';
+import { switchMap, catchError, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-postulante-wizard',
@@ -53,11 +56,15 @@ import { MatChipsModule } from '@angular/material/chips';
 export class PostulanteWizardComponent {
   private fb = inject(FormBuilder);
   private repository = inject(PostulanteRepository);
+  private cloudinaryService = inject(CloudinaryService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
   isLinear = true;
   loading = signal(false);
+
+  // Map to store files to upload later
+  private filesToUpload: Map<string, File> = new Map();
 
   departamentos: string[] = [
     'La Paz',
@@ -107,7 +114,7 @@ export class PostulanteWizardComponent {
   });
 
   funcionesForm = this.fb.group({
-    funcionesPostular: [[], Validators.required]
+    funcionesPostular: [[] as string[], Validators.required]
   });
 
   militaryServiceForm = this.fb.group({
@@ -132,7 +139,7 @@ export class PostulanteWizardComponent {
   }
 
   loadFunciones() {
-    this.repository.getCustom('funciones').subscribe((funcs: any) => {
+    this.repository.getFunciones().subscribe((funcs: string[]) => {
       if (funcs && funcs.length > 0) {
         this.availableFunctions.set(funcs);
       }
@@ -164,6 +171,8 @@ export class PostulanteWizardComponent {
   }
 
   removeCertificado(index: number) {
+    const key = `certificados.${index}.archivo`;
+    this.filesToUpload.delete(key);
     this.certificados.removeAt(index);
   }
 
@@ -179,6 +188,8 @@ export class PostulanteWizardComponent {
   }
 
   removeFormacion(index: number) {
+    const key = `formaciones.${index}.archivo`;
+    this.filesToUpload.delete(key);
     this.formaciones.removeAt(index);
   }
 
@@ -201,6 +212,8 @@ export class PostulanteWizardComponent {
   }
 
   removeExperiencia(index: number) {
+    const key = `experiencias.${index}.archivo`;
+    this.filesToUpload.delete(key);
     this.experiencias.removeAt(index);
   }
 
@@ -227,88 +240,48 @@ export class PostulanteWizardComponent {
     const file = event.target.files[0] as File;
     if (!file) return;
 
-    // 1. Validar tamaño (Máx 2MB)
-    const maxSizeInBytes = 2 * 1024 * 1024;
+    // 1. Validar tipo
+    if (!this.cloudinaryService.isValidFileType(file)) {
+      this.snackBar.open('Tipo de archivo no permitido. Solo JPG, PNG, WEBP o PDF.', 'Cerrar', { duration: 4000 });
+      event.target.value = '';
+      return;
+    }
+
+    // 2. Validar tamaño (Máx 5MB)
+    const maxSizeInBytes = 5 * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
-      this.snackBar.open('El archivo excede el límite de 2MB', 'Cerrar', { 
+      this.snackBar.open('El archivo excede el límite de 5MB', 'Cerrar', { 
         duration: 4000,
         panelClass: ['error-snackbar']
       });
-      event.target.value = ''; // Reset input
+      event.target.value = ''; 
       return;
     }
 
     try {
-      let result: string;
-
-      // 2. Comprimir si es imagen (Foto de perfil)
-      if (file.type.startsWith('image/')) {
-        result = await this.compressImage(file);
-      } else {
-        // 3. Convertir a Base64 para PDF
-        result = await this.fileToBase64(file);
+      // Store the file to upload later
+      let key = formControlName;
+      if (index !== undefined) {
+        // Find out which array it is
+        let arrayName = 'array';
+        if (formGroup === this.certificados) arrayName = 'certificados';
+        if (formGroup === this.formaciones) arrayName = 'formaciones';
+        if (formGroup === this.experiencias) arrayName = 'experiencias';
+        key = `${arrayName}.${index}.${formControlName}`;
       }
+      this.filesToUpload.set(key, file);
 
-      // 4. Asignar al formulario
+      // Set filename to form to pass validation
+      const value = file.name;
+
       if (index !== undefined && formGroup instanceof FormArray) {
-        formGroup.at(index).get(formControlName)?.setValue(result);
+        formGroup.at(index).get(formControlName)?.setValue(value);
       } else if (formGroup instanceof FormGroup) {
-        formGroup.get(formControlName)?.setValue(result);
+        formGroup.get(formControlName)?.setValue(value);
       }
     } catch (error) {
       this.snackBar.open('Error al procesar el archivo', 'Cerrar', { duration: 3000 });
     }
-  }
-
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  private compressImage(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event: any) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          // Max dimensions
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          // Quality 0.7
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
-        };
-        img.onerror = reject;
-      };
-      reader.onerror = reject;
-    });
   }
 
   onGenderChange() {
@@ -326,9 +299,38 @@ export class PostulanteWizardComponent {
 
   submit() {
     if (this.loading()) return;
-
     this.loading.set(true);
-    
+
+    // 1. Upload all files first
+    const uploadTasks: Observable<{ key: string, url: string }>[] = [];
+    this.filesToUpload.forEach((file, key) => {
+      uploadTasks.push(
+        this.cloudinaryService.uploadFile(file).pipe(
+          map(url => ({ key, url }))
+        )
+      );
+    });
+
+    if (uploadTasks.length === 0) {
+      this.savePostulante({});
+      return;
+    }
+
+    forkJoin(uploadTasks).subscribe({
+      next: (results) => {
+        const fileUrls: { [key: string]: string } = {};
+        results.forEach(res => fileUrls[res.key] = res.url);
+        this.savePostulante(fileUrls);
+      },
+      error: (err) => {
+        console.error('Upload error:', err);
+        this.snackBar.open('Error al subir archivos a Cloudinary', 'Cerrar', { duration: 4000 });
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private savePostulante(fileUrls: { [key: string]: string }) {
     const rawData = {
       ...this.personalDataForm.value,
       ...this.identityDocForm.value,
@@ -340,8 +342,9 @@ export class PostulanteWizardComponent {
       ...this.militaryServiceForm.value
     };
 
-    // Format dates before saving
-    const formattedData = this.formatDates(rawData);
+    // Replace filenames with Cloudinary URLs
+    const processedData = this.applyFileUrls(rawData, fileUrls);
+    const formattedData = this.formatDates(processedData);
 
     this.repository.create(formattedData).subscribe({
       next: () => {
@@ -349,31 +352,68 @@ export class PostulanteWizardComponent {
         this.router.navigate(['/dashboard/home']);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Firestore error:', err);
         this.snackBar.open('Error al guardar la postulación', 'Cerrar', { duration: 3000 });
         this.loading.set(false);
       }
     });
   }
 
+  private applyFileUrls(data: any, fileUrls: { [key: string]: string }): any {
+    const processed = { ...data };
+    
+    // Direct fields
+    if (fileUrls['foto']) processed.foto = fileUrls['foto'];
+    if (fileUrls['documentoIdentidad']) processed.documentoIdentidad = fileUrls['documentoIdentidad'];
+    if (fileUrls['certificadoLenguaOriginaria']) processed.certificadoLenguaOriginaria = fileUrls['certificadoLenguaOriginaria'];
+    if (fileUrls['archivo']) processed.archivo = fileUrls['archivo']; // military service
+
+    // Arrays
+    if (processed.certificados) {
+      processed.certificados = processed.certificados.map((c: any, i: number) => ({
+        ...c,
+        archivo: fileUrls[`certificados.${i}.archivo`] || c.archivo
+      }));
+    }
+
+    if (processed.formacionesAcademicas) {
+      processed.formacionesAcademicas = processed.formacionesAcademicas.map((f: any, i: number) => ({
+        ...f,
+        archivo: fileUrls[`formaciones.${i}.archivo`] || f.archivo
+      }));
+    }
+
+    if (processed.experienciasLaborales) {
+      processed.experienciasLaborales = processed.experienciasLaborales.map((e: any, i: number) => ({
+        ...e,
+        archivo: fileUrls[`experiencias.${i}.archivo`] || e.archivo
+      }));
+    }
+
+    return processed;
+  }
+
   private formatDates(data: any): any {
     const formatted = { ...data };
-    if (formatted.fechaNacimiento) formatted.fechaNacimiento = formatted.fechaNacimiento.toISODate();
+    if (formatted.fechaNacimiento && formatted.fechaNacimiento.toISODate) {
+      formatted.fechaNacimiento = formatted.fechaNacimiento.toISODate();
+    }
     
     formatted.certificados = formatted.certificados?.map((c: any) => ({
       ...c,
-      fecha: c.fecha?.toISODate()
+      fecha: c.fecha?.toISODate ? c.fecha.toISODate() : c.fecha
     }));
 
     formatted.formacionesAcademicas = formatted.formacionesAcademicas?.map((f: any) => ({
       ...f,
-      fecha: f.fecha?.toISODate()
+      fecha: f.fecha?.toISODate ? f.fecha.toISODate() : f.fecha
     }));
 
     formatted.experienciasLaborales = formatted.experienciasLaborales?.map((e: any) => ({
       ...e,
-      fechaInicio: e.fechaInicio?.toISODate(),
-      fechaFin: e.fechaFin?.toISODate()
+      fechaInicio: e.fechaInicio?.toISODate ? e.fechaInicio.toISODate() : e.fechaInicio,
+      fechaFin: e.fechaFin?.toISODate ? e.fechaFin.toISODate() : e.fechaFin
     }));
 
     return formatted;

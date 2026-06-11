@@ -1,16 +1,23 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, of, catchError, map } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { User } from '../models';
+import { 
+  Firestore, 
+  collection, 
+  query, 
+  where, 
+  getDocs,
+  limit 
+} from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
+  private firestore = inject(Firestore);
   private router = inject(Router);
-  private baseUrl = 'http://localhost:3000/users';
 
   // Signals for state management
   private currentUserSignal = signal<User | null>(this.getUserFromStorage());
@@ -19,16 +26,28 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.currentUserSignal());
 
   login(username: string, password: string): Observable<boolean> {
-    return this.http.get<User[]>(`${this.baseUrl}?username=${username}&password=${password}`).pipe(
-      map(users => {
-        if (users.length > 0) {
-          const user = users[0];
+    const usersRef = collection(this.firestore, 'users');
+    const q = query(
+      usersRef, 
+      where('username', '==', username), 
+      where('password', '==', password),
+      limit(1)
+    );
+
+    return from(getDocs(q)).pipe(
+      map(snapshot => {
+        if (!snapshot.empty) {
+          const doc = snapshot.docs[0];
+          const user = { id: doc.id, ...doc.data() } as User;
           this.setCurrentUser(user);
           return true;
         }
         return false;
       }),
-      catchError(() => of(false))
+      catchError(error => {
+        console.error('Auth error:', error);
+        return of(false);
+      })
     );
   }
 

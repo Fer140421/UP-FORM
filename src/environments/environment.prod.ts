@@ -7,5 +7,9 @@ export const environment = {
     storageBucket: "TU_STORAGE_BUCKET",
     messagingSenderId: "TU_SENDER_ID",
     appId: "TU_APP_ID"
+  },
+  cloudinary: {
+    cloudName: 'dt7kkwf1z',
+    uploadPreset: 'angular_upload'
   }
 };

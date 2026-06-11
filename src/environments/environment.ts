@@ -7,5 +7,9 @@ export const environment = {
     storageBucket: "up-form-40587.firebasestorage.app",
     messagingSenderId: "154197486040",
     appId: "1:154197486040:web:0eb7531983c211613deaad"
+  },
+  cloudinary: {
+    cloudName: 'dt7kkwf1z',
+    uploadPreset: 'angular_upload'
   }
 };

@@ -6,14 +6,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const user = authService.currentUser();
 
-  // In a real app, we would add the Authorization header here
-  // For JSON Server, we just pass the request through or simulate token headers
-  if (user) {
+  if (req.url.includes('cloudinary.com')) {
+    return next(req);
+  }
+
+  if (user?.rol) {
     const cloned = req.clone({
       setHeaders: {
-        'X-User-Role': user.role
+        'X-User-Role': user.rol
       }
     });
+
     return next(cloned);
   }
 
