@@ -1,0 +1,98 @@
+<mat-sidenav-container class="sidenav-container" autosize>
+  <mat-sidenav #drawer class="sidenav" fixedInViewport
+      [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+      [mode]="(isHandset$ | async) ? 'over' : 'side'"
+      [opened]="(isHandset$ | async) === false">
+    
+    <div class="logo-container">
+      <span class="logo-text">UP-FORM</span>
+    </div>
+
+    <mat-nav-list class="nav-list">
+      <div class="nav-section-label">Principal</div>
+      <a mat-list-item routerLink="/dashboard/home" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>home</mat-icon>
+        <span matListItemTitle>Inicio</span>
+      </a>
+
+      <div class="nav-section-label">Gestión</div>
+      <a mat-list-item routerLink="/dashboard/postulantes" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>person_add</mat-icon>
+        <span matListItemTitle>Postulantes</span>
+      </a>
+      <a mat-list-item routerLink="/dashboard/instituciones" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>business</mat-icon>
+        <span matListItemTitle>Instituciones</span>
+      </a>
+      <a mat-list-item routerLink="/dashboard/requisitos" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>rule</mat-icon>
+        <span matListItemTitle>Requisitos</span>
+      </a>
+      <a mat-list-item routerLink="/dashboard/asignaciones" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
+        <span matListItemTitle>Asignaciones</span>
+      </a>
+
+      <!-- <div class="nav-section-label">Sistema</div>
+      <a mat-list-item routerLink="/dashboard/configuracion" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>settings_suggest</mat-icon>
+        <span matListItemTitle>Configuración</span>
+      </a> -->
+    </mat-nav-list>
+
+    <!--<div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          {{ currentUser()?.name?.charAt(0) }}
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ currentUser()?.name }}</span>
+          <span class="user-role">{{ currentUser()?.role }}</span>
+        </div>
+      </div>
+    </div>-->
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="main-toolbar">
+      @if (isHandset$ | async) {
+        <button
+          type="button"
+          aria-label="Toggle sidenav"
+          mat-icon-button
+          (click)="drawer.toggle()">
+          <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+        </button>
+      }
+      <span class="breadcrumb">Sistema / Dashboard</span>
+      <span class="spacer"></span>
+      
+      <button mat-icon-button class="toolbar-icon">
+        <mat-icon>notifications_none</mat-icon>
+      </button>
+
+      <button mat-button [matMenuTriggerFor]="userMenu" class="profile-trigger">
+        <div class="profile-content">
+          <span class="user-display-name">{{ currentUser()?.name }}</span>
+          <mat-icon iconPositionEnd>expand_more</mat-icon>
+        </div>
+      </button>
+      
+      <mat-menu #userMenu="matMenu" class="modern-menu">
+        <button mat-menu-item>
+          <mat-icon>person_outline</mat-icon>
+          <span>Mi Perfil</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Cerrar Sesión</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

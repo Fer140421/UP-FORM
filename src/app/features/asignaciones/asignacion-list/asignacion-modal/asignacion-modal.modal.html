@@ -1,0 +1,88 @@
+<h2 mat-dialog-title>Cargos para: {{ data.institucion.nombre }}</h2>
+<mat-dialog-content>
+  <h3>Lista de Cargos Requeridos</h3>
+  <table mat-table [dataSource]="data.requisitos" class="mat-elevation-z2">
+    <ng-container matColumnDef="cargo">
+      <th mat-header-cell *matHeaderCellDef> Denominación </th>
+      <td mat-cell *matCellDef="let element"> {{element.denominacionCargo}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="unidad">
+      <th mat-header-cell *matHeaderCellDef> Unidad </th>
+      <td mat-cell *matCellDef="let element"> {{element.unidadPuesto}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="formacion">
+      <th mat-header-cell *matHeaderCellDef> Formación </th>
+      <td mat-cell *matCellDef="let element"> {{element.formacion}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="experiencia">
+      <th mat-header-cell *matHeaderCellDef> Experiencia </th>
+      <td mat-cell *matCellDef="let element"> {{element.experienciaLaboral}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef> Estado </th>
+      <td mat-cell *matCellDef="let element"> {{element.estado}} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> Acción </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-raised-button color="primary" (click)="selectCargo(element)" [disabled]="selectedRequisito()?.id === element.id">
+          {{ selectedRequisito()?.id === element.id ? 'Seleccionado' : 'Asignar' }}
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="reqColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: reqColumns;"></tr>
+  </table>
+
+  @if (selectedRequisito()) {
+    <div class="postulantes-section">
+      <h3>Seleccionar Postulante para: {{ selectedRequisito()?.denominacionCargo }}</h3>
+      <table mat-table [dataSource]="postulantes()" class="mat-elevation-z2">
+        <ng-container matColumnDef="carnet">
+          <th mat-header-cell *matHeaderCellDef> Carnet </th>
+          <td mat-cell *matCellDef="let element"> {{element.carnet}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef> Nombre Completo </th>
+          <td mat-cell *matCellDef="let element"> {{element.nombres}} {{element.apellidoPaterno}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="celular">
+          <th mat-header-cell *matHeaderCellDef> Celular </th>
+          <td mat-cell *matCellDef="let element"> {{element.celular}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="formacion">
+          <th mat-header-cell *matHeaderCellDef> Formación </th>
+          <td mat-cell *matCellDef="let element">
+            @for (f of element.formacionesAcademicas; track $index) {
+              <div>{{f.grado}}: {{f.tituloObtenido}}</div>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef> Acción </th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-raised-button color="accent" (click)="asignar(element)">
+              Confirmar Asignación
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="postColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: postColumns;"></tr>
+      </table>
+    </div>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

@@ -1,0 +1,555 @@
+<div class="wizard-header">
+  <h1 class="section-title">Nueva Postulación</h1>
+  <p class="section-subtitle">Complete los pasos para registrar su postulación al sistema.</p>
+</div>
+
+<mat-card class="wizard-card">
+  <mat-stepper [linear]="isLinear" #stepper class="modern-stepper">
+    <!-- Paso 1: Datos Personales -->
+    <mat-step [stepControl]="personalDataForm">
+      <form [formGroup]="personalDataForm">
+        <ng-template matStepLabel><mat-icon>person</mat-icon></ng-template>
+        
+        <div class="step-content">
+          <div class="step-title-container">
+            <h3>1. Datos Personales</h3>
+            <p>Información básica de contacto y perfil.</p>
+          </div>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Carnet de Identidad</mat-label>
+              <input matInput formControlName="carnet" required>
+              <mat-icon matSuffix>badge</mat-icon>
+            </mat-form-field>
+
+            <div class="photo-upload-container">
+              <label class="input-label">Fotografía Personal *</label>
+              <div class="file-drop-zone" [class.has-file]="personalDataForm.get('foto')?.value">
+                <input type="file" #photoInput hidden (change)="onFileChange($event, 'foto', personalDataForm)" accept="image/*">
+                
+                <div class="upload-info">
+                  <mat-icon>{{ personalDataForm.get('foto')?.value ? 'check_circle' : 'add_a_photo' }}</mat-icon>
+                  <span>{{ personalDataForm.get('foto')?.value ? 'Fotografía cargada' : 'Seleccione su fotografía' }}</span>
+                  <span class="file-size-hint">Máx 2MB (se comprimirá automáticamente)</span>
+                </div>
+
+                <button mat-flat-button color="primary" type="button" (click)="photoInput.click()">
+                  <mat-icon>{{ personalDataForm.get('foto')?.value ? 'sync' : 'upload' }}</mat-icon>
+                  {{ personalDataForm.get('foto')?.value ? 'Cambiar foto' : 'Subir foto' }}
+                </button>
+              </div>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nombres</mat-label>
+              <input matInput formControlName="nombres" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Apellido Paterno</mat-label>
+              <input matInput formControlName="apellidoPaterno" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Apellido Materno</mat-label>
+              <input matInput formControlName="apellidoMaterno" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Nacimiento</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="fechaNacimiento" required>
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Género</mat-label>
+              <mat-select formControlName="genero" required (selectionChange)="onGenderChange()">
+                <mat-option value="Masculino">Masculino</mat-option>
+                <mat-option value="Femenino">Femenino</mat-option>
+                <mat-option value="Otro">Otro</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Celular</mat-label>
+              <input matInput formControlName="celular" required>
+              <mat-icon matSuffix>phone</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Correo electrónico (opcional)</mat-label>
+              <input matInput formControlName="correo" type="email">
+              <mat-icon matSuffix>alternate_email</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Departamento</mat-label>
+              <mat-select formControlName="departamento" required>
+                @for (depto of departamentos; track depto) {
+                  <mat-option [value]="depto">{{ depto }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Localidad</mat-label>
+              <input matInput formControlName="localidad" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Dirección</mat-label>
+              <input matInput formControlName="direccion" required>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-flat-button color="primary" matStepperNext [disabled]="personalDataForm.invalid">Continuar</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Paso 2: Documento de Identidad -->
+    <mat-step [stepControl]="identityDocForm">
+      <form [formGroup]="identityDocForm">
+        <ng-template matStepLabel><mat-icon>assignment_ind</mat-icon></ng-template>
+        <div class="step-content centered-content">
+          <div class="step-title-container">
+            <h3>2. Documento de Identidad</h3>
+          </div>
+          <div class="upload-illustration">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <h3>Cargar CI (PDF)</h3>
+            <p>Por favor, suba una copia escaneada de su CI en formato PDF (Máx 2MB).</p>
+          </div>
+          
+          <div class="file-drop-zone large" [class.has-file]="identityDocForm.get('documentoIdentidad')?.value">
+            <input type="file" #ciInput hidden (change)="onFileChange($event, 'documentoIdentidad', identityDocForm)" accept="application/pdf">
+            
+            <div class="upload-info">
+              <mat-icon>{{ identityDocForm.get('documentoIdentidad')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
+              <span>{{ identityDocForm.get('documentoIdentidad')?.value ? 'Documento cargado correctamente' : 'No se ha seleccionado ningún archivo' }}</span>
+              <span class="file-size-hint">Máx 2MB - Formato PDF</span>
+            </div>
+
+            <button mat-flat-button color="primary" type="button" (click)="ciInput.click()">
+              <mat-icon>{{ identityDocForm.get('documentoIdentidad')?.value ? 'sync' : 'upload_file' }}</mat-icon>
+              {{ identityDocForm.get('documentoIdentidad')?.value ? 'Cambiar archivo' : 'Seleccionar PDF' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Atrás</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="identityDocForm.invalid">Continuar</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Paso 3: Certificado Lengua Originaria -->
+    <mat-step [stepControl]="nativeLanguageForm">
+      <form [formGroup]="nativeLanguageForm">
+        <ng-template matStepLabel><mat-icon>translate</mat-icon></ng-template>
+        <div class="step-content centered-content">
+          <div class="step-title-container">
+            <h3>3. Lengua Originaria</h3>
+          </div>
+          <div class="upload-illustration">
+            <mat-icon>translate</mat-icon>
+            <h3>Certificado de Lengua Originaria</h3>
+            <p>Es obligatorio subir el certificado que acredite el dominio de una lengua originaria.</p>
+          </div>
+          
+          <div class="file-drop-zone large" [class.has-file]="nativeLanguageForm.get('certificadoLenguaOriginaria')?.value">
+            <input type="file" #langInput hidden (change)="onFileChange($event, 'certificadoLenguaOriginaria', nativeLanguageForm)" accept="application/pdf">
+            
+            <div class="upload-info">
+              <mat-icon>{{ nativeLanguageForm.get('certificadoLenguaOriginaria')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
+              <span>{{ nativeLanguageForm.get('certificadoLenguaOriginaria')?.value ? 'Certificado cargado correctamente' : 'Seleccionar archivo PDF (Máx 2MB)' }}</span>
+            </div>
+
+            <button mat-flat-button color="primary" type="button" (click)="langInput.click()">
+              <mat-icon>{{ nativeLanguageForm.get('certificadoLenguaOriginaria')?.value ? 'sync' : 'upload_file' }}</mat-icon>
+              {{ nativeLanguageForm.get('certificadoLenguaOriginaria')?.value ? 'Cambiar certificado' : 'Subir PDF' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Atrás</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="nativeLanguageForm.invalid">Continuar</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Paso 4: Certificados -->
+    <mat-step [stepControl]="certificatesForm">
+      <ng-template matStepLabel><mat-icon>card_membership</mat-icon></ng-template>
+      <div class="step-content">
+        <div class="step-title-container section-header-inline">
+          <h3>4. Otros Certificados</h3>
+          <button mat-stroked-button color="primary" (click)="addCertificado()">
+            <mat-icon>add</mat-icon> Agregar Certificado
+          </button>
+        </div>
+
+        <div [formGroup]="certificatesForm" class="dynamic-items-list">
+          <div formArrayName="certificados">
+            @for (cert of certificados.controls; track $index) {
+              <mat-card class="dynamic-item-card" [formGroupName]="$index">
+                <div class="item-card-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nombre del Certificado</mat-label>
+                    <input matInput formControlName="nombre" required>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Descripción</mat-label>
+                    <input matInput formControlName="descripcion" required>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Fecha</mat-label>
+                    <input matInput [matDatepicker]="certPicker" formControlName="fecha" required>
+                    <mat-datepicker-toggle matIconSuffix [for]="certPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #certPicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <div class="file-input-compact">
+                    <input type="file" #certInput hidden (change)="onFileChange($event, 'archivo', certificados, $index)" accept="application/pdf">
+                    
+                    <button mat-stroked-button type="button" (click)="certInput.click()" [class.has-file]="cert.get('archivo')?.value">
+                      <mat-icon>{{ cert.get('archivo')?.value ? 'check_circle' : 'upload_file' }}</mat-icon>
+                      {{ cert.get('archivo')?.value ? 'PDF cargado' : 'Subir PDF' }}
+                    </button>
+                  </div>
+
+                  <button mat-icon-button color="warn" (click)="removeCertificado($index)" matTooltip="Eliminar">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </mat-card>
+            } @empty {
+              <div class="empty-state-card">
+                <mat-icon>card_membership</mat-icon>
+                <p>Aún no ha agregado certificados adicionales.</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button mat-button matStepperPrevious>Atrás</button>
+        <button mat-flat-button color="primary" matStepperNext [disabled]="certificatesForm.invalid">Continuar</button>
+      </div>
+    </mat-step>
+
+    <!-- Paso 5: Funciones a postular -->
+    <mat-step [stepControl]="funcionesForm">
+      <form [formGroup]="funcionesForm">
+        <ng-template matStepLabel><mat-icon>list</mat-icon></ng-template>
+        <div class="step-content">
+          <div class="step-title-container">
+            <h3>5. Funciones a postular</h3>
+            <p>Seleccione las funciones o cargos a los que desea postular.</p>
+          </div>
+
+          <div class="functions-selection-container">
+            <mat-selection-list formControlName="funcionesPostular" color="primary">
+              @for (func of availableFunctions(); track func) {
+                <mat-list-option [value]="func">
+                  {{ func }}
+                </mat-list-option>
+              }
+            </mat-selection-list>
+
+            @if (funcionesForm.get('funcionesPostular')?.invalid && funcionesForm.get('funcionesPostular')?.touched) {
+              <mat-error style="margin-top: 16px; display: block;">
+                Debe seleccionar al menos una función.
+              </mat-error>
+            }
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Atrás</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="funcionesForm.invalid">Continuar</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Paso 6: Formación Académica -->
+    <mat-step [stepControl]="educationForm">
+      <ng-template matStepLabel><mat-icon>school</mat-icon></ng-template>
+      <div class="step-content">
+        <div class="step-title-container section-header-inline">
+          <h3>6. Formación Académica</h3>
+          <button mat-stroked-button color="primary" (click)="addFormacion()">
+            <mat-icon>school</mat-icon> Agregar Título
+          </button>
+        </div>
+
+        <div [formGroup]="educationForm" class="dynamic-items-list">
+          <div formArrayName="formacionesAcademicas">
+            @for (form of formaciones.controls; track $index) {
+              <mat-card class="dynamic-item-card" [formGroupName]="$index">
+                <div class="item-card-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Grado</mat-label>
+                    <mat-select formControlName="grado" required>
+                      <mat-option value="Bachiller">Bachiller</mat-option>
+                      <mat-option value="Técnico Básico">Técnico Básico</mat-option>
+                      <mat-option value="Técnico Medio">Técnico Medio</mat-option>
+                      <mat-option value="Técnico Superior">Técnico Superior</mat-option>
+                      <mat-option value="Licenciatura">Licenciatura</mat-option>
+                      <mat-option value="Diplomado">Diplomado</mat-option>
+                      <mat-option value="Otro">Otro</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Institución</mat-label>
+                    <input matInput formControlName="institucion" required>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Título Obtenido</mat-label>
+                    <input matInput formControlName="tituloObtenido" required>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Fecha de Egreso</mat-label>
+                    <input matInput [matDatepicker]="formPicker" formControlName="fecha" required>
+                    <mat-datepicker-toggle matIconSuffix [for]="formPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #formPicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <div class="file-input-compact">
+                    <input type="file" #eduInput hidden (change)="onFileChange($event, 'archivo', formaciones, $index)" accept="application/pdf">
+                    
+                    <button mat-stroked-button type="button" (click)="eduInput.click()" [class.has-file]="form.get('archivo')?.value">
+                      <mat-icon>{{ form.get('archivo')?.value ? 'check_circle' : 'upload_file' }}</mat-icon>
+                      {{ form.get('archivo')?.value ? 'PDF cargado' : 'Subir PDF' }}
+                    </button>
+                  </div>
+
+                  <button mat-icon-button color="warn" (click)="removeFormacion($index)" matTooltip="Eliminar">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </mat-card>
+            } @empty {
+              <div class="empty-state-card">
+                <mat-icon>school</mat-icon>
+                <p>Registre sus títulos y grados académicos (Debe adjuntar PDF).</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button mat-button matStepperPrevious>Atrás</button>
+        <button mat-flat-button color="primary" matStepperNext [disabled]="educationForm.invalid">Continuar</button>
+      </div>
+    </mat-step>
+
+    <!-- Paso 7: Experiencia Laboral -->
+    <mat-step [stepControl]="experienceForm">
+      <ng-template matStepLabel><mat-icon>work</mat-icon></ng-template>
+      <div class="step-content">
+        <div class="step-title-container section-header-inline">
+          <h3>7. Experiencia Laboral</h3>
+          <button mat-stroked-button color="primary" (click)="addExperiencia()">
+            <mat-icon>work_outline</mat-icon> Agregar Experiencia
+          </button>
+        </div>
+
+        <div [formGroup]="experienceForm" class="dynamic-items-list">
+          <div formArrayName="experienciasLaborales">
+            @for (exp of experiencias.controls; track $index) {
+              <mat-card class="dynamic-item-card exp-card" [formGroupName]="$index">
+                <div class="item-card-grid-large">
+                  <div class="grid-row">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Institución/Empresa</mat-label>
+                      <input matInput formControlName="institucion" required>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Área de Trabajo</mat-label>
+                      <input matInput formControlName="area" required>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Cargo Desempeñado</mat-label>
+                      <input matInput formControlName="cargo" required>
+                    </mat-form-field>
+                  </div>
+                  <div class="grid-row">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Fecha Inicio</mat-label>
+                      <input matInput [matDatepicker]="startPicker" formControlName="fechaInicio" required>
+                      <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #startPicker></mat-datepicker>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Fecha Fin</mat-label>
+                      <input matInput [matDatepicker]="endPicker" formControlName="fechaFin" required>
+                      <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #endPicker></mat-datepicker>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="calculated-field">
+                      <mat-label>Tiempo de Servicio</mat-label>
+                      <input matInput formControlName="tiempoTrabajado" readonly>
+                      <mat-icon matSuffix color="primary">history</mat-icon>
+                    </mat-form-field>
+                  </div>
+                  <div class="item-actions" style="display: flex; gap: 16px; align-items: center;">
+                    <div class="file-input-compact" style="flex: 1;">
+                      <input type="file" #expInput hidden (change)="onFileChange($event, 'archivo', experiencias, $index)" accept="application/pdf">
+                      <button mat-stroked-button type="button" (click)="expInput.click()" [class.has-file]="exp.get('archivo')?.value" style="width: 100%;">
+                        <mat-icon>{{ exp.get('archivo')?.value ? 'check_circle' : 'upload_file' }}</mat-icon>
+                        {{ exp.get('archivo')?.value ? 'Certificado laboral cargado' : 'Subir Certificado de Trabajo (PDF)' }}
+                      </button>
+                    </div>
+                    <button mat-button color="warn" (click)="removeExperiencia($index)">
+                      <mat-icon>delete</mat-icon> Eliminar registro
+                    </button>
+                  </div>
+                </div>
+              </mat-card>
+            } @empty {
+              <div class="empty-state-card">
+                <mat-icon>work_history</mat-icon>
+                <p>Aún no ha registrado experiencias laborales (Debe adjuntar certificados).</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button mat-button matStepperPrevious>Atrás</button>
+        <button mat-flat-button color="primary" matStepperNext [disabled]="experienceForm.invalid">Continuar</button>
+      </div>
+    </mat-step>
+
+    <!-- Paso 8: Libreta de Servicio Militar -->
+    <mat-step [stepControl]="militaryServiceForm">
+      <form [formGroup]="militaryServiceForm">
+        <ng-template matStepLabel><mat-icon>military_tech</mat-icon></ng-template>
+        
+        <div class="step-content centered-content">
+          <div class="step-title-container">
+            <h3>8. Situación Militar</h3>
+          </div>
+          <div class="upload-illustration">
+            <mat-icon>military_tech</mat-icon>
+            <h3>Libreta Militar</h3>
+            <p>Indique si cuenta con libreta de servicio militar y adjunte el documento si corresponde.</p>
+          </div>
+
+          <div class="military-selection">
+            <mat-radio-group formControlName="poseeLibreta" class="modern-radio-group">
+              <mat-radio-button value="Si">Sí, poseo libreta militar</mat-radio-button>
+              <mat-radio-button value="No">No poseo libreta militar</mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          @if (militaryServiceForm.get('poseeLibreta')?.value === 'Si') {
+            <div class="file-drop-zone large animate-fade-in" [class.has-file]="militaryServiceForm.get('archivo')?.value">
+              <input type="file" #milInput hidden (change)="onFileChange($event, 'archivo', militaryServiceForm)" accept="application/pdf">
+              
+              <div class="upload-info">
+                <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
+                <span>{{ militaryServiceForm.get('archivo')?.value ? 'Libreta adjunta correctamente' : 'No se ha seleccionado archivo' }}</span>
+              </div>
+
+              <button mat-flat-button color="primary" type="button" (click)="milInput.click()">
+                <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'sync' : 'upload_file' }}</mat-icon>
+                {{ militaryServiceForm.get('archivo')?.value ? 'Cambiar archivo' : 'Subir PDF de Libreta' }}
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Atrás</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="militaryServiceForm.invalid">Continuar</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Resumen Final -->
+    <mat-step>
+      <ng-template matStepLabel><mat-icon>fact_check</mat-icon></ng-template>
+      <div class="step-content">
+        <div class="summary-card-container">
+          <div class="step-title-container centered">
+            <h3>Resumen Final</h3>
+          </div>
+          <div class="summary-header">
+            <mat-icon>check_circle</mat-icon>
+            <h2>¡Todo listo para enviar!</h2>
+            <p>Revise el resumen de su información antes de confirmar.</p>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-section">
+              <h4>Información Personal</h4>
+              <div class="summary-row">
+                <span class="label">Nombre Completo:</span>
+                <span class="value">{{ personalDataForm.get('nombres')?.value }} {{ personalDataForm.get('apellidoPaterno')?.value }} {{ personalDataForm.get('apellidoMaterno')?.value }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Carnet:</span>
+                <span class="value">{{ personalDataForm.get('carnet')?.value }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Contacto:</span>
+                <span class="value">{{ personalDataForm.get('celular')?.value }} | {{ personalDataForm.get('correo')?.value || 'N/A' }}</span>
+              </div>
+              <div class="summary-row" style="margin-top: 12px;">
+                <span class="label">Funciones a postular:</span>
+                <mat-chip-set>
+                  @for (func of funcionesSeleccionadas; track func) {
+                    <mat-chip>{{ func }}</mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            </div>
+
+            <div class="summary-section">
+              <h4>Documentación</h4>
+              <div class="status-list">
+                <div class="status-item" [class.done]="identityDocForm.valid">
+                  <mat-icon>check</mat-icon> Documento de Identidad
+                </div>
+                <div class="status-item" [class.done]="nativeLanguageForm.valid">
+                  <mat-icon>check</mat-icon> Certificado Lengua Originaria
+                </div>
+                <div class="status-item" [class.done]="funcionesForm.valid">
+                  <mat-icon>check</mat-icon> Funciones Seleccionadas
+                </div>
+                <div class="status-item" [class.done]="militaryServiceForm.valid">
+                  <mat-icon>check</mat-icon> Situación Militar
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button mat-button matStepperPrevious>Atrás</button>
+        <button mat-flat-button color="primary" class="final-submit" (click)="submit()" [disabled]="loading()">
+          @if (loading()) {
+            <mat-spinner diameter="24" color="accent"></mat-spinner>
+            <span>Procesando...</span>
+          } @else {
+            <mat-icon>send</mat-icon>
+            <span>Finalizar y Enviar Postulación</span>
+          }
+        </button>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</mat-card>

@@ -1,0 +1,170 @@
+/* Import Angular Material Pre-built Theme */
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+
+/* Import modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Material Global Overrides */
+.mat-mdc-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Base Button Styling */
+.mat-mdc-button, 
+.mat-mdc-raised-button, 
+.mat-mdc-unelevated-button, 
+.mat-mdc-outlined-button {
+  border-radius: var(--radius-md) !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  height: 44px !important;
+  padding: 0 24px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Icon Button specific adjustments */
+.mat-mdc-icon-button {
+  width: 40px !important;
+  height: 40px !important;
+  padding: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mat-mdc-icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  transform: scale(1.1);
+}
+
+/* Hover & Focus states for solid buttons */
+.mat-mdc-unelevated-button:hover,
+.mat-mdc-raised-button:hover {
+  box-shadow: var(--shadow-md) !important;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.mat-mdc-unelevated-button:active,
+.mat-mdc-raised-button:active {
+  transform: translateY(0);
+}
+
+/* Primary Button color override */
+.mat-primary {
+  --mdc-filled-button-container-color: var(--primary-color) !important;
+}
+
+/* Global Button Utilities */
+.btn-success {
+  --mdc-filled-button-container-color: #10b981 !important;
+  color: white !important;
+}
+
+.btn-danger, .btn-delete {
+  --mdc-filled-button-container-color: #ef4444 !important;
+  --mdc-outlined-button-outline-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+.mat-mdc-icon-button.btn-delete {
+  color: #ef4444 !important;
+}
+
+.mat-mdc-icon-button.btn-edit {
+  color: var(--primary-color) !important;
+}
+
+/* Outlined Button enhancement */
+.mat-mdc-outlined-button {
+  border-width: 1.5px !important;
+  border-color: var(--border-color) !important;
+}
+
+.mat-mdc-outlined-button:hover {
+  background-color: var(--bg-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: var(--radius-md) !important;
+}
+
+/* Fix for Select and Menu Legibility (PRESERVED) */
+.mat-mdc-select-panel, 
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel {
+  background-color: var(--surface-color) !important;
+}
+
+.mat-mdc-option {
+  color: var(--text-main) !important;
+}
+
+/* Utility Classes */
+.full-width { width: 100%; }
+.spacer { flex: 1 1 auto; }
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.025em;
+}
+
+.card-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+/* Page transitions */
+.main-content {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

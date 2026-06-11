@@ -1,0 +1,376 @@
+.wizard-header {
+  margin-bottom: 2rem;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  margin-top: -1rem;
+}
+
+.wizard-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.modern-stepper {
+  background: transparent !important;
+}
+
+.step-content {
+  padding: 40px;
+  min-height: 400px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.photo-upload-container {
+  grid-column: 1 / -1;
+  margin-bottom: 12px;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.file-drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.file-drop-zone.has-file {
+  border-style: solid;
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.02);
+}
+
+.file-drop-zone .upload-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.file-drop-zone.has-file .upload-info {
+  color: #059669;
+}
+
+.file-drop-zone.large {
+  padding: 60px 40px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.file-input-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-input-compact button {
+  width: 100%;
+  height: 48px !important;
+  border-color: var(--border-color) !important;
+}
+
+.file-input-compact button.has-file {
+  border-color: #10b981 !important;
+  color: #059669 !important;
+  background-color: rgba(16, 185, 129, 0.02) !important;
+}
+
+.file-size-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.functions-selection-container {
+  max-width: 600px;
+  margin: 0 auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: white;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.functions-selection-container mat-selection-list {
+  padding-top: 0;
+}
+
+.centered-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.upload-illustration {
+  margin-bottom: 32px;
+}
+
+.upload-illustration mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--primary-color);
+  opacity: 0.2;
+  margin-bottom: 16px;
+}
+
+.section-header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-header-inline h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.dynamic-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dynamic-item-card {
+  padding: 20px !important;
+  border-radius: var(--radius-md) !important;
+  background-color: var(--bg-color) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+}
+
+/* ========================= */
+/* PASO 4 CERTIFICADOS */
+/* ========================= */
+
+.item-card-grid {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.2fr auto auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.file-input-compact {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 4px;
+}
+
+.file-input-compact button {
+  height: 56px;
+  min-width: 170px;
+  white-space: nowrap;
+}
+
+.file-input-compact mat-icon {
+  margin-right: 4px;
+}
+
+/* ========================= */
+
+.item-card-grid-large {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.empty-state-card {
+  padding: 48px;
+  text-align: center;
+  background: var(--bg-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  border: 1px dashed var(--border-color);
+}
+
+.empty-state-card mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.military-selection {
+  margin-bottom: 32px;
+}
+
+.modern-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-card-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.summary-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.summary-header mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #10b981;
+  margin-bottom: 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.summary-section {
+  padding: 24px;
+  background: var(--bg-color);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.summary-section h4 {
+  margin: 0 0 16px;
+  color: var(--primary-color);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.summary-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.summary-row .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.summary-row .value {
+  font-weight: 600;
+}
+
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.status-item.done {
+  color: #059669;
+}
+
+.status-item mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.step-actions {
+  padding: 24px 40px;
+  background-color: var(--bg-color);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.final-submit {
+  height: 48px;
+  padding: 0 32px !important;
+  font-weight: 700 !important;
+}
+
+.step-title-container {
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.step-title-container h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.step-title-container p {
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.step-title-container.centered {
+  text-align: center;
+  border-bottom: none;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@media (max-width: 960px) {
+  .item-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .file-input-compact {
+    width: 100%;
+  }
+
+  .file-input-compact button {
+    width: 100%;
+  }
+}

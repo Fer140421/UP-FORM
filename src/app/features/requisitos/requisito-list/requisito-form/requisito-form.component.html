@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>{{ data.requisito?.id ? 'Editar' : 'Nuevo' }} Requisito</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="requisito-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Institución</mat-label>
+      <mat-select formControlName="institucionId" required>
+        @for (inst of data.instituciones; track inst.id) {
+          <mat-option [value]="inst.id">{{inst.nombre}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Denominación del Cargo</mat-label>
+      <input matInput formControlName="denominacionCargo" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Unidad de Puesto</mat-label>
+      <input matInput formControlName="unidadPuesto" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Formación Requerida</mat-label>
+      <input matInput formControlName="formacion" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Experiencia Laboral General</mat-label>
+      <input matInput formControlName="experienciaLaboral" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Experiencia Especifica</mat-label>
+      <input matInput formControlName="experienciaEspecifica" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Idioma Nativo</mat-label>
+      <input matInput formControlName="idiomaNativo" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="estado" required>
+        <mat-option value="Activo">Activo</mat-option>
+        <mat-option value="Inactivo">Inactivo</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="save()">Guardar</button>
+</mat-dialog-actions>
+
+<style>
+  .requisito-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding-top: 10px;
+  }
+  @media (max-width: 600px) {
+    .requisito-form { grid-template-columns: 1fr; }
+  }
+</style>
