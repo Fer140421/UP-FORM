@@ -245,29 +245,37 @@
       </div>
     </mat-step>
 
-    <!-- Paso 5: Funciones a postular -->
+    <!-- Paso 5: Puesto a postular -->
     <mat-step [stepControl]="funcionesForm">
       <form [formGroup]="funcionesForm">
-        <ng-template matStepLabel><mat-icon>list</mat-icon></ng-template>
+        <ng-template matStepLabel><mat-icon>work_outline</mat-icon></ng-template>
         <div class="step-content">
           <div class="step-title-container">
-            <h3>5. Funciones a postular</h3>
-            <p>Seleccione las funciones o cargos a los que desea postular.</p>
+            <h3>5. Puesto a postular</h3>
+            <p>Seleccione el cargo específico al que desea postular.</p>
           </div>
 
-          <div class="functions-selection-container">
-            <mat-selection-list formControlName="funcionesPostular" color="primary">
-              @for (func of availableFunctions(); track func) {
-                <mat-list-option [value]="func">
-                  {{ func }}
-                </mat-list-option>
-              }
-            </mat-selection-list>
+          <div class="puesto-selection-container">
+            <mat-form-field appearance="outline" class="full-width search-field">
+              <mat-label>Buscar Cargo o Institución</mat-label>
+              <input matInput (input)="searchTerm.set(searchInput.value)" #searchInput placeholder="Ej: Portero, Ministerio...">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
 
-            @if (funcionesForm.get('funcionesPostular')?.invalid && funcionesForm.get('funcionesPostular')?.touched) {
-              <mat-error style="margin-top: 16px; display: block;">
-                Debe seleccionar al menos una función.
-              </mat-error>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Seleccione el Cargo Disponible</mat-label>
+              <mat-select formControlName="puestoId" required>
+                @for (puesto of filteredPuestos(); track puesto.id) {
+                  <mat-option [value]="puesto.id">
+                    {{ puesto.denominacionCargo }} - {{ puesto.institucionNombre }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matSuffix>business_center</mat-icon>
+            </mat-form-field>
+
+            @if (funcionesForm.get('puestoId')?.invalid && funcionesForm.get('puestoId')?.touched) {
+              <mat-error>Debe seleccionar un puesto para continuar.</mat-error>
             }
           </div>
         </div>
@@ -508,12 +516,8 @@
                 <span class="value">{{ personalDataForm.get('celular')?.value }} | {{ personalDataForm.get('correo')?.value || 'N/A' }}</span>
               </div>
               <div class="summary-row" style="margin-top: 12px;">
-                <span class="label">Funciones a postular:</span>
-                <mat-chip-set>
-                  @for (func of funcionesSeleccionadas; track func) {
-                    <mat-chip>{{ func }}</mat-chip>
-                  }
-                </mat-chip-set>
+                <span class="label">Puesto a postular:</span>
+                <span class="value">{{ getSelectedPuestoName() }}</span>
               </div>
             </div>
 
@@ -545,8 +549,10 @@
             <mat-spinner diameter="24" color="accent"></mat-spinner>
             <span>Procesando...</span>
           } @else {
-            <mat-icon>send</mat-icon>
-            <span>Finalizar y Enviar Postulación</span>
+            <ng-container>
+              <mat-icon>send</mat-icon>
+              <span>Finalizar y Enviar Postulación</span>
+            </ng-container>
           }
         </button>
       </div>

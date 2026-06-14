@@ -1,12 +1,12 @@
 export const environment = {
   production: true,
   firebase: {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_AUTH_DOMAIN",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_STORAGE_BUCKET",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyBu-m60dn_nawahjqQOcSroeb9mltFZFcg",
+    authDomain: "up-form-40587.firebaseapp.com",
+    projectId: "up-form-40587",
+    storageBucket: "up-form-40587.firebasestorage.app",
+    messagingSenderId: "154197486040",
+    appId: "1:154197486040:web:0eb7531983c211613deaad"
   },
   cloudinary: {
     cloudName: 'dt7kkwf1z',

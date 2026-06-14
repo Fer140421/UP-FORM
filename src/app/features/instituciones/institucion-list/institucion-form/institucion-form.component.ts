@@ -4,13 +4,15 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { InstitucionRepository } from '../../../../core/repositories/institucion.repository';
 import { Institucion } from '../../../../core/models';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-institucion-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './institucion-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -20,18 +22,22 @@ export class InstitucionFormComponent {
   private dialogRef = inject(MatDialogRef<InstitucionFormComponent>);
   public data = inject<Institucion>(MAT_DIALOG_DATA);
 
+  loading = signal(false);
+
   form = this.fb.group({
     nombre: [this.data?.nombre || '', Validators.required]
   });
 
   save() {
-    if (this.form.valid) {
+    if (this.form.valid && !this.loading()) {
+      this.loading.set(true);
       const value = this.form.value as Institucion;
       const obs = this.data?.id 
         ? this.repository.update(this.data.id, value)
         : this.repository.create(value);
 
-      obs.subscribe(() => this.dialogRef.close(true));
+      obs.pipe(finalize(() => this.loading.set(false)))
+         .subscribe(() => this.dialogRef.close(true));
     }
   }
 }

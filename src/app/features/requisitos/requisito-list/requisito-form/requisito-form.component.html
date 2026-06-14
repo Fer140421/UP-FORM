@@ -50,8 +50,15 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancelar</button>
-  <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="save()">Guardar</button>
+  <button mat-button mat-dialog-close [disabled]="loading()">Cancelar</button>
+  <button mat-raised-button color="primary" [disabled]="form.invalid || loading()" (click)="save()">
+    @if (loading()) {
+      <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+      Guardando...
+    } @else {
+      Guardar
+    }
+  </button>
 </mat-dialog-actions>
 
 <style>
@@ -64,4 +71,5 @@
   @media (max-width: 600px) {
     .requisito-form { grid-template-columns: 1fr; }
   }
+  mat-spinner { vertical-align: middle; }
 </style>

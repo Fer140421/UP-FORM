@@ -37,7 +37,7 @@ export class LoginComponent {
   hidePassword = signal(true);
 
   loginForm = this.fb.group({
-    username: ['', [Validators.required]],
+    email: ['', [Validators.required]],
     password: ['', [Validators.required]]
   });
 
@@ -48,9 +48,9 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.loading.set(true);
-      const { username, password } = this.loginForm.value;
+      const { email, password } = this.loginForm.value;
       
-      this.authService.login(username!, password!).subscribe({
+      this.authService.login(email!, password!).subscribe({
         next: (success) => {
           if (success) {
             this.router.navigate(['/dashboard']);

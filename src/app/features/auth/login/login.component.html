@@ -23,11 +23,11 @@
       <mat-card-content>
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Usuario</mat-label>
+            <mat-label>Correo Electrónico</mat-label>
             <mat-icon matPrefix>person_outline</mat-icon>
-            <input matInput formControlName="username">
-            @if (loginForm.get('username')?.hasError('required')) {
-              <mat-error>El usuario es obligatorio</mat-error>
+            <input matInput formControlName="email">
+            @if (loginForm.get('email')?.hasError('required')) {
+              <mat-error>El correo electrónico es obligatorio</mat-error>
             }
           </mat-form-field>
 

@@ -27,6 +27,7 @@ export interface Postulante {
   formacionesAcademicas: FormacionAcademica[];
   experienciasLaborales: ExperienciaLaboral[];
   funcionesPostular: string[];
+  puestoId: string; // Linked RequisitoPuesto
 }
 
 export interface Certificado {

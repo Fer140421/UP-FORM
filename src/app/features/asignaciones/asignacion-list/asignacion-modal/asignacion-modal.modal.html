@@ -30,7 +30,7 @@
     <ng-container matColumnDef="acciones">
       <th mat-header-cell *matHeaderCellDef> Acción </th>
       <td mat-cell *matCellDef="let element">
-        <button mat-raised-button color="primary" (click)="selectCargo(element)" [disabled]="selectedRequisito()?.id === element.id">
+        <button mat-raised-button color="primary" (click)="selectCargo(element)" [disabled]="selectedRequisito()?.id === element.id || loading()">
           {{ selectedRequisito()?.id === element.id ? 'Seleccionado' : 'Asignar' }}
         </button>
       </td>
@@ -71,8 +71,13 @@
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef> Acción </th>
           <td mat-cell *matCellDef="let element">
-            <button mat-raised-button color="accent" (click)="asignar(element)">
-              Confirmar Asignación
+            <button mat-raised-button color="accent" (click)="asignar(element)" [disabled]="loading()">
+              @if (loading()) {
+                <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                Asignando...
+              } @else {
+                Confirmar Asignación
+              }
             </button>
           </td>
         </ng-container>
@@ -84,5 +89,5 @@
   }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cerrar</button>
+  <button mat-button mat-dialog-close [disabled]="loading()">Cerrar</button>
 </mat-dialog-actions>

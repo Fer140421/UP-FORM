@@ -1,43 +1,57 @@
-import { inject } from '@angular/core';
-import { 
-  Firestore, 
-  collection, 
-  collectionData, 
-  doc, 
-  docData, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+import { inject, Injector, runInInjectionContext } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  docData,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   query,
-  DocumentReference,
-  CollectionReference
+  where,
 } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BaseRepository } from './base.repository';
 
 export class FirestoreRepository<T extends { id?: string }> implements BaseRepository<T> {
-  protected firestore = inject(Firestore);
-  protected collectionRef: CollectionReference;
+  protected firestore: Firestore;
+  protected injector: Injector;
 
   constructor(protected collectionName: string) {
-    this.collectionRef = collection(this.firestore, collectionName);
+    // inject() en el constructor SÍ está dentro del contexto de inyección
+    this.firestore = inject(Firestore);
+    this.injector = inject(Injector);
   }
 
   getAll(): Observable<T[]> {
-    return collectionData(this.collectionRef, { idField: 'id' }) as Observable<T[]>;
+    const ref = collection(this.firestore, this.collectionName);
+    return runInInjectionContext(this.injector, () =>
+      collectionData(ref, { idField: 'id' }) as Observable<T[]>
+    );
+  }
+
+  getByProperty(field: string, value: any): Observable<T[]> {
+    const ref = collection(this.firestore, this.collectionName);
+    const q = query(ref, where(field, '==', value));
+    return runInInjectionContext(this.injector, () =>
+      collectionData(q, { idField: 'id' }) as Observable<T[]>
+    );
   }
 
   getById(id: string): Observable<T> {
     const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
-    return docData(docRef, { idField: 'id' }) as Observable<T>;
+    return runInInjectionContext(this.injector, () =>
+      docData(docRef, { idField: 'id' }) as Observable<T>
+    );
   }
 
   create(item: T): Observable<T> {
-    // Remove id if it exists, Firestore will generate one
     const { id, ...data } = item;
-    return from(addDoc(this.collectionRef, data)).pipe(
-      map((docRef: DocumentReference) => ({ ...item, id: docRef.id }))
+    const ref = collection(this.firestore, this.collectionName);
+    return from(addDoc(ref, data)).pipe(
+      map((docRef) => ({ ...item, id: docRef.id }))
     );
   }
 
@@ -54,9 +68,10 @@ export class FirestoreRepository<T extends { id?: string }> implements BaseRepos
     return from(deleteDoc(docRef));
   }
 
-  // Helper for custom collections or nested queries if needed
-  protected getQuery(queryFn: (ref: CollectionReference) => any): Observable<T[]> {
-    const q = queryFn(this.collectionRef);
-    return collectionData(q, { idField: 'id' }) as Observable<T[]>;
+  protected getQuery(): Observable<T[]> {
+    const ref = collection(this.firestore, this.collectionName);
+    return runInInjectionContext(this.injector, () =>
+      collectionData(ref, { idField: 'id' }) as Observable<T[]>
+    );
   }
 }

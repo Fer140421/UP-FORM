@@ -28,10 +28,10 @@
         <mat-icon matListItemIcon>rule</mat-icon>
         <span matListItemTitle>Requisitos</span>
       </a>
-      <a mat-list-item routerLink="/dashboard/asignaciones" routerLinkActive="active-link">
+      <!--<a mat-list-item routerLink="/dashboard/asignaciones" routerLinkActive="active-link">
         <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
         <span matListItemTitle>Asignaciones</span>
-      </a>
+      </a>-->
 
       <!-- <div class="nav-section-label">Sistema</div>
       <a mat-list-item routerLink="/dashboard/configuracion" routerLinkActive="active-link">
@@ -73,7 +73,7 @@
 
       <button mat-button [matMenuTriggerFor]="userMenu" class="profile-trigger">
         <div class="profile-content">
-          <span class="user-display-name">{{ currentUser()?.name }}</span>
+          <span class="user-display-name">{{ currentUser()?.displayName }}</span>
           <mat-icon iconPositionEnd>expand_more</mat-icon>
         </div>
       </button>

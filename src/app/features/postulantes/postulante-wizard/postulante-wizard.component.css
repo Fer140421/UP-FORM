@@ -102,18 +102,20 @@
   display: block;
 }
 
-.functions-selection-container {
+.puesto-selection-container {
   max-width: 600px;
   margin: 0 auto;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: white;
-  max-height: 400px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.functions-selection-container mat-selection-list {
-  padding-top: 0;
+.search-field {
+  margin-bottom: 8px;
+}
+
+.full-width {
+  width: 100%;
 }
 
 .centered-content {

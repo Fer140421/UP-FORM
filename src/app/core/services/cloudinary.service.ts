@@ -14,12 +14,6 @@ export class CloudinaryService {
   private readonly url = `https://api.cloudinary.com/v1_1/${this.cloudName}/auto/upload`;
 
   uploadFile(file: File): Observable<string> {
-      console.log('Cloud Name:', this.cloudName);
-  console.log('Upload Preset:', this.uploadPreset);
-  console.log('URL:', this.url);
-  console.log('File:', file);
-  console.log('File Name:', file.name);
-  console.log('File Type:', file.type);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', this.uploadPreset);

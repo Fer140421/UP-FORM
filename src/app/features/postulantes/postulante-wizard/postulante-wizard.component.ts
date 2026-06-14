@@ -18,12 +18,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { DateTime } from 'luxon';
 import { PostulanteRepository } from '../../../core/repositories/postulante.repository';
+import { RequisitoPuestoRepository } from '../../../core/repositories/requisito-puesto.repository';
+import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
 import { CloudinaryService } from '../../../core/services/cloudinary.service';
 import { Router } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { forkJoin, Observable, of } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs/operators';
+import { switchMap, catchError, map, take } from 'rxjs/operators';
+import { RequisitoPuesto } from '../../../core/models';
 
 @Component({
   selector: 'app-postulante-wizard',
@@ -56,6 +59,8 @@ import { switchMap, catchError, map } from 'rxjs/operators';
 export class PostulanteWizardComponent {
   private fb = inject(FormBuilder);
   private repository = inject(PostulanteRepository);
+  private reqRepository = inject(RequisitoPuestoRepository);
+  private instRepository = inject(InstitucionRepository);
   private cloudinaryService = inject(CloudinaryService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
@@ -114,7 +119,7 @@ export class PostulanteWizardComponent {
   });
 
   funcionesForm = this.fb.group({
-    funcionesPostular: [[] as string[], Validators.required]
+    puestoId: ['', Validators.required]
   });
 
   militaryServiceForm = this.fb.group({
@@ -122,27 +127,32 @@ export class PostulanteWizardComponent {
     archivo: ['']
   });
 
-  availableFunctions = signal<string[]>([
-    'Administrativo',
-    'Técnico en Sistemas',
-    'Contador',
-    'Secretaria',
-    'Chofer',
-    'Auxiliar de Servicios',
-    'Asesor Legal',
-    'Recursos Humanos',
-    'Comunicación Social'
-  ]);
+  puestosDisponibles = signal<(RequisitoPuesto & { institucionNombre: string })[]>([]);
+  searchTerm = signal('');
+
+  filteredPuestos = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    return this.puestosDisponibles().filter(p => 
+      p.denominacionCargo.toLowerCase().includes(term) || 
+      p.institucionNombre.toLowerCase().includes(term)
+    );
+  });
 
   ngOnInit() {
-    this.loadFunciones();
+    this.loadPuestos();
   }
 
-  loadFunciones() {
-    this.repository.getFunciones().subscribe((funcs: string[]) => {
-      if (funcs && funcs.length > 0) {
-        this.availableFunctions.set(funcs);
-      }
+  loadPuestos() {
+    forkJoin({
+      reqs: this.reqRepository.getAll().pipe(take(1)),
+      insts: this.instRepository.getAll().pipe(take(1))
+    }).subscribe(({ reqs, insts }) => {
+      const activeReqs = reqs.filter(r => r.estado === 'Activo');
+      const mapped = activeReqs.map(r => ({
+        ...r,
+        institucionNombre: insts.find(i => i.id === r.institucionId)?.nombre || 'Desconocida'
+      }));
+      this.puestosDisponibles.set(mapped);
     });
   }
 
@@ -421,5 +431,11 @@ export class PostulanteWizardComponent {
 
   get funcionesSeleccionadas(): string[] {
     return this.funcionesForm.get('funcionesPostular')?.value ?? [];
+  }
+
+  getSelectedPuestoName(): string {
+    const id = this.funcionesForm.get('puestoId')?.value;
+    const puesto = this.puestosDisponibles().find(p => p.id === id);
+    return puesto ? `${puesto.denominacionCargo} (${puesto.institucionNombre})` : 'No seleccionado';
   }
 }

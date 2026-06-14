@@ -6,6 +6,9 @@
 </div>
 
 <mat-card class="table-card">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
   <div class="table-container">
     <table mat-table [dataSource]="instituciones()" class="modern-table">
       <ng-container matColumnDef="nombre">
@@ -24,6 +27,17 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+          @if (!loading()) {
+            <div class="empty-state">
+              <mat-icon>business</mat-icon>
+              <p>No se encontraron instituciones registradas.</p>
+            </div>
+          }
+        </td>
+      </tr>
     </table>
   </div>
 </mat-card>
