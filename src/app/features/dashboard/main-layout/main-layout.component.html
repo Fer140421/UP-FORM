@@ -64,13 +64,9 @@
           <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
         </button>
       }
-      <span class="breadcrumb">Sistema / Dashboard</span>
       <span class="spacer"></span>
       
-      <button mat-icon-button class="toolbar-icon">
-        <mat-icon>notifications_none</mat-icon>
-      </button>
-
+      
       <button mat-button [matMenuTriggerFor]="userMenu" class="profile-trigger">
         <div class="profile-content">
           <span class="user-display-name">{{ currentUser()?.displayName }}</span>
@@ -79,10 +75,10 @@
       </button>
       
       <mat-menu #userMenu="matMenu" class="modern-menu">
-        <button mat-menu-item>
+        <!--<button mat-menu-item>
           <mat-icon>person_outline</mat-icon>
           <span>Mi Perfil</span>
-        </button>
+        </button>-->
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="logout()">
           <mat-icon>logout</mat-icon>

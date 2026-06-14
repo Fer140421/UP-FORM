@@ -1,8 +1,8 @@
 export interface User {
   id: string;
-  username: string;
-  rol: 'Administrador';
-  name: string;
+  email: string;
+  rol: 'ADMINISTRADOR';
+  nombre: string;
 }
 
 export interface Postulante {
