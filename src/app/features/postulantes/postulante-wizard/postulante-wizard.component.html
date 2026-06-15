@@ -1,6 +1,6 @@
 <div class="wizard-header">
-  <h1 class="section-title">Nueva Postulación</h1>
-  <p class="section-subtitle">Complete los pasos para registrar su postulación al sistema.</p>
+  <h1 class="section-title">{{ editId() ? 'Editar Postulación' : 'Nueva Postulación' }}</h1>
+  <p class="section-subtitle">{{ editId() ? 'Modifique los datos de su postulación registrada.' : 'Complete los pasos para registrar su postulación al sistema.' }}</p>
 </div>
 
 <mat-card class="wizard-card">
@@ -550,8 +550,8 @@
             <span>Procesando...</span>
           } @else {
             <ng-container>
-              <mat-icon>send</mat-icon>
-              <span>Finalizar y Enviar Postulación</span>
+              <mat-icon>{{ editId() ? 'save' : 'send' }}</mat-icon>
+              <span>{{ editId() ? 'Actualizar Postulación' : 'Finalizar y Enviar Postulación' }}</span>
             </ng-container>
           }
         </button>

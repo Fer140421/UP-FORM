@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import { Component, inject, signal, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -8,6 +8,10 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RequisitoPuestoRepository } from '../../../core/repositories/requisito-puesto.repository';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
 import { RequisitoPuesto, Institucion } from '../../../core/models';
@@ -28,7 +32,11 @@ import { finalize, take } from 'rxjs/operators';
     MatChipsModule,
     MatCardModule,
     MatTooltipModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatPaginatorModule,
+    MatSortModule
   ],
   templateUrl: './requisito-list.component.html',
   styleUrl: './requisito-list.component.css',
@@ -40,11 +48,14 @@ export class RequisitoListComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  requisitos = signal<any[]>([]);
   instituciones = signal<Institucion[]>([]);
   loading = signal(false);
   
   displayedColumns: string[] = ['institucion', 'cargo', 'unidad', 'estado', 'acciones'];
+  dataSource = new MatTableDataSource<any>([]);
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit() {
     this.loadData();
@@ -63,8 +74,19 @@ export class RequisitoListComponent implements OnInit {
         ...r,
         institucionNombre: instituciones.find(i => i.id === r.institucionId)?.nombre || 'Desconocida'
       }));
-      this.requisitos.set(mapped);
+      this.dataSource.data = mapped;
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     });
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   openForm(requisito?: RequisitoPuesto) {

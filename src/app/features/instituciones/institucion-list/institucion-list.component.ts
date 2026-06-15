@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import { Component, inject, signal, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -7,6 +7,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
 import { Institucion } from '../../../core/models';
 import { InstitucionFormComponent } from './institucion-form/institucion-form.component';
@@ -25,7 +29,11 @@ import { finalize, take } from 'rxjs/operators';
     MatSnackBarModule,
     MatCardModule,
     MatTooltipModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatPaginatorModule,
+    MatSortModule
   ],
   templateUrl: './institucion-list.component.html',
   styleUrl: './institucion-list.component.css',
@@ -36,9 +44,12 @@ export class InstitucionListComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  instituciones = signal<Institucion[]>([]);
   loading = signal(false);
   displayedColumns: string[] = ['id', 'nombre', 'acciones'];
+  dataSource = new MatTableDataSource<Institucion>([]);
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit() {
     this.loadData();
@@ -53,7 +64,9 @@ export class InstitucionListComponent implements OnInit {
       )
       .subscribe({
         next: data => {
-          this.instituciones.set(data);
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
         },
         error: err => {
           console.error('ERROR LOADING INSTITUCIONES =>', err);
@@ -61,18 +74,27 @@ export class InstitucionListComponent implements OnInit {
       });
   }
 
-openForm(institucion?: Institucion) {
-  const dialogRef = this.dialog.open(InstitucionFormComponent, {
-    width: '400px',
-    data: institucion
-  });
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result) {
-      this.loadData();
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
-  });
-}
+  }
+
+  openForm(institucion?: Institucion) {
+    const dialogRef = this.dialog.open(InstitucionFormComponent, {
+      width: '400px',
+      data: institucion
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
+  }
 
   ingresar(institucion: Institucion) {
     this.dialog.open(InstitucionDetalleComponent, {

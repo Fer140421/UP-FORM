@@ -1,11 +1,15 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Institucion, RequisitoPuesto, Asignacion, Postulante } from '../../../../core/models';
 import { RequisitoPuestoRepository } from '../../../../core/repositories/requisito-puesto.repository';
 import { AsignacionRepository } from '../../../../core/repositories/asignacion.repository';
@@ -26,39 +30,51 @@ import { forkJoin } from 'rxjs';
     MatIconModule,
     MatProgressBarModule,
     MatTooltipModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatPaginatorModule,
+    MatSortModule
   ],
   template: `
     <h2 mat-dialog-title>Cargos Requeridos: {{ data.nombre }}</h2>
     <mat-dialog-content>
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar cargo</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Abogado" #input>
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
       @if (loading()) {
         <mat-progress-bar mode="indeterminate" style="margin-bottom: 15px;"></mat-progress-bar>
       }
 
       <div class="table-container">
-        <table mat-table [dataSource]="requisitosData()" class="modern-table">
+        <table mat-table [dataSource]="dataSource" matSort class="modern-table">
           <ng-container matColumnDef="cargo">
-            <th mat-header-cell *matHeaderCellDef> Denominación </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Denominación </th>
             <td mat-cell *matCellDef="let element" class="font-semibold"> {{element.denominacionCargo}} </td>
           </ng-container>
 
           <ng-container matColumnDef="unidad">
-            <th mat-header-cell *matHeaderCellDef> Unidad </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Unidad </th>
             <td mat-cell *matCellDef="let element"> {{element.unidadPuesto}} </td>
           </ng-container>
 
           <ng-container matColumnDef="formacion">
-            <th mat-header-cell *matHeaderCellDef> Formación </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Formación </th>
             <td mat-cell *matCellDef="let element"> {{element.formacion}} </td>
           </ng-container>
 
           <ng-container matColumnDef="experiencia">
-            <th mat-header-cell *matHeaderCellDef> Experiencia </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia </th>
             <td mat-cell *matCellDef="let element"> {{element.experienciaLaboral}} </td>
           </ng-container>
 
           <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef> Estado </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
             <td mat-cell *matCellDef="let element">
               <span class="badge-status" [class.active]="element.estado === 'Activo'" [class.inactive]="element.estado === 'Inactivo'">
                 {{ element.estado === 'Activo' ? 'Disponible' : 'Asignado' }}
@@ -94,19 +110,22 @@ import { forkJoin } from 'rxjs';
               @if (!loading()) {
                 <div class="empty-state">
                   <mat-icon>rule</mat-icon>
-                  <p>No hay cargos registrados para esta institución.</p>
+                  <p>No se encontraron resultados para "{{input.value}}"</p>
                 </div>
               }
             </td>
           </tr>
         </table>
       </div>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" aria-label="Seleccionar página"></mat-paginator>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-flat-button color="primary" mat-dialog-close>Cerrar</button>
     </mat-dialog-actions>
 
     <style>
+      .search-container { margin-bottom: 16px; }
+      .search-field { width: 100%; }
       .table-container { min-height: 200px; }
       .modern-table { width: 100%; }
       .font-semibold { font-weight: 600; color: #333; }
@@ -152,9 +171,12 @@ export class InstitucionDetalleComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  requisitosData = signal<any[]>([]);
   loading = signal(false);
   displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experiencia', 'estado', 'acciones'];
+  dataSource = new MatTableDataSource<any>([]);
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit() {
     this.loadData();
@@ -171,8 +193,19 @@ export class InstitucionDetalleComponent implements OnInit {
         ...r,
         asignacion: asigs.find(a => a.requisitoId === r.id)
       }));
-      this.requisitosData.set(mapped);
+      this.dataSource.data = mapped;
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     });
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   asignarPuesto(requisito: RequisitoPuesto) {

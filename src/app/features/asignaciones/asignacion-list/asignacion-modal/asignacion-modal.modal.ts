@@ -7,8 +7,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Institucion, RequisitoPuesto, Postulante } from '../../../../core/models';
 import { PostulanteRepository } from '../../../../core/repositories/postulante.repository';
 import { AsignacionRepository } from '../../../../core/repositories/asignacion.repository';
+import { RequisitoPuestoRepository } from '../../../../core/repositories/requisito-puesto.repository';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { finalize } from 'rxjs/operators';
+import { finalize, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-asignacion-modal',
@@ -26,6 +27,7 @@ export class AsignacionModalComponent implements OnInit {
   public data = inject<{ institucion: Institucion, requisitos: RequisitoPuesto[] }>(MAT_DIALOG_DATA);
   private postRepository = inject(PostulanteRepository);
   private asigRepository = inject(AsignacionRepository);
+  private reqRepository = inject(RequisitoPuestoRepository);
   private snackBar = inject(MatSnackBar);
 
   postulantes = signal<Postulante[]>([]);
@@ -47,16 +49,23 @@ export class AsignacionModalComponent implements OnInit {
     if (!this.selectedRequisito() || this.loading()) return;
 
     this.loading.set(true);
+    const cargoId = this.selectedRequisito()!.id;
+    const denominacion = this.selectedRequisito()?.denominacionCargo;
+
     const nuevaAsignacion = {
       postulanteId: postulante.id,
-      requisitoId: this.selectedRequisito()!.id,
+      requisitoId: cargoId,
       fechaAsignacion: new Date().toISOString()
     };
 
+    // 1. Crear asignación, 2. Marcar cargo como Inactivo
     this.asigRepository.create(nuevaAsignacion as any)
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        switchMap(() => this.reqRepository.update(cargoId, { estado: 'Inactivo' } as any)),
+        finalize(() => this.loading.set(false))
+      )
       .subscribe(() => {
-        this.snackBar.open(`Postulante ${postulante.nombres} asignado al cargo ${this.selectedRequisito()?.denominacionCargo}`, 'Cerrar', { duration: 4000 });
+        this.snackBar.open(`Postulante ${postulante.nombres} asignado al cargo ${denominacion}`, 'Cerrar', { duration: 4000 });
         this.selectedRequisito.set(null);
       });
   }

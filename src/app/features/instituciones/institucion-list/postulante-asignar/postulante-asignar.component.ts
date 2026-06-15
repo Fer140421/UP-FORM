@@ -25,28 +25,38 @@ import { finalize, take, switchMap } from 'rxjs/operators';
     MatSnackBarModule
   ],
   template: `
-    <h2 mat-dialog-title>Candidatos para: {{ data.denominacionCargo }}</h2>
+    <h2 mat-dialog-title class="dialog-title">Candidatos para: {{ data.denominacionCargo }}</h2>
     <mat-dialog-content>
       @if (loading()) {
-        <mat-progress-bar mode="indeterminate" style="margin-bottom: 20px;"></mat-progress-bar>
+        <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
       }
 
       <div class="candidatos-grid">
         @for (post of postulantes(); track post.id) {
           <mat-card class="candidato-card">
+            <div class="card-accent"></div>
             <mat-card-header>
               <img mat-card-avatar [src]="post.foto" alt="Foto">
               <mat-card-title>{{ post.nombres }} {{ post.apellidoPaterno }}</mat-card-title>
               <mat-card-subtitle>{{ post.carnet }} | {{ post.celular }}</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
-              <p><strong>Última experiencia:</strong> {{ post.experienciasLaborales[0]?.cargo || 'N/A' }}</p>
-              <p><strong>Formación:</strong> {{ post.formacionesAcademicas[0]?.grado || 'N/A' }}</p>
+              <div class="info-row">
+                <mat-icon color="primary">work</mat-icon>
+                <span><strong>Última experiencia:</strong> {{ post.experienciasLaborales[0]?.cargo || 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon color="primary">school</mat-icon>
+                <span><strong>Formación:</strong> {{ post.formacionesAcademicas[0]?.grado || 'N/A' }}</span>
+              </div>
             </mat-card-content>
-            <mat-card-actions align="end">
-              <button mat-button (click)="verDetalle(post)">VER MÁS</button>
-              <button mat-flat-button color="accent" (click)="confirmarAsignacion(post)" [disabled]="assigning()">
-                ASIGNAR PUESTO
+            <mat-divider></mat-divider>
+            <mat-card-actions class="actions-container">
+              <button mat-stroked-button color="primary" class="btn-detail" (click)="verDetalle(post)">
+                <mat-icon>visibility</mat-icon> VER MÁS
+              </button>
+              <button mat-flat-button color="accent" class="btn-assign" (click)="confirmarAsignacion(post)" [disabled]="assigning()">
+                <mat-icon>check_circle</mat-icon> ASIGNAR
               </button>
             </mat-card-actions>
           </mat-card>
@@ -60,26 +70,54 @@ import { finalize, take, switchMap } from 'rxjs/operators';
         }
       </div>
     </mat-dialog-content>
-    <mat-dialog-actions align="end">
+    <mat-dialog-actions align="end" class="dialog-footer">
       <button mat-button mat-dialog-close>Cancelar</button>
     </mat-dialog-actions>
 
     <style>
+      .dialog-title { color: #3f51b5; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 16px; }
+      .loading-bar { margin-bottom: 20px; }
       .candidatos-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-        padding: 10px 0;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        padding: 16px 4px;
       }
-      .candidato-card { border-top: 4px solid #ffd740; }
+      .candidato-card { 
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+      }
+      .candidato-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+      }
+      .card-accent { height: 6px; background: linear-gradient(90deg, #3f51b5, #ffd740); }
+      mat-card-header { padding: 16px; background-color: #fafafa; }
+      mat-card-header img { border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      mat-card-content { padding: 20px 16px; flex-grow: 1; }
+      .info-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.95rem; color: #444; }
+      .info-row mat-icon { font-size: 20px; width: 20px; height: 20px; }
+      .actions-container { 
+        padding: 12px 16px; 
+        display: flex; 
+        justify-content: space-between; 
+        gap: 12px;
+        background-color: #fafafa;
+      }
+      .btn-detail, .btn-assign { flex: 1; border-radius: 8px; font-weight: 500; }
+      .btn-assign mat-icon, .btn-detail mat-icon { margin-right: 4px; }
       .empty-state {
         grid-column: 1 / -1;
         text-align: center;
-        padding: 60px 0;
+        padding: 80px 0;
         color: #888;
       }
-      .empty-state mat-icon { font-size: 64px; width: 64px; height: 64px; opacity: 0.3; }
-      mat-card-header img { object-fit: cover; }
+      .empty-state mat-icon { font-size: 80px; width: 80px; height: 80px; opacity: 0.2; margin-bottom: 16px; }
+      .dialog-footer { border-top: 1px solid #eee; padding-top: 8px; }
     </style>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush

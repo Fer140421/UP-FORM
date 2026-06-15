@@ -21,12 +21,12 @@ import { PostulanteRepository } from '../../../core/repositories/postulante.repo
 import { RequisitoPuestoRepository } from '../../../core/repositories/requisito-puesto.repository';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
 import { CloudinaryService } from '../../../core/services/cloudinary.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { forkJoin, Observable, of } from 'rxjs';
-import { switchMap, catchError, map, take } from 'rxjs/operators';
-import { RequisitoPuesto } from '../../../core/models';
+import { switchMap, catchError, map, take, finalize } from 'rxjs/operators';
+import { Postulante, RequisitoPuesto } from '../../../core/models';
 
 @Component({
   selector: 'app-postulante-wizard',
@@ -64,9 +64,11 @@ export class PostulanteWizardComponent {
   private cloudinaryService = inject(CloudinaryService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   isLinear = true;
   loading = signal(false);
+  editId = signal<string | null>(null);
 
   // Map to store files to upload later
   private filesToUpload: Map<string, File> = new Map();
@@ -140,6 +142,70 @@ export class PostulanteWizardComponent {
 
   ngOnInit() {
     this.loadPuestos();
+    this.checkEditMode();
+  }
+
+  checkEditMode() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.editId.set(id);
+      this.loading.set(true);
+      this.repository.getById(id)
+        .pipe(
+          take(1),
+          finalize(() => this.loading.set(false))
+        )
+        .subscribe(data => {
+          if (data) this.patchData(data);
+        });
+    }
+  }
+
+  patchData(data: Postulante) {
+    this.personalDataForm.patchValue({
+      ...data,
+      fechaNacimiento: data.fechaNacimiento ? DateTime.fromISO(data.fechaNacimiento) : null
+    } as any);
+
+    this.identityDocForm.patchValue({ documentoIdentidad: data.documentoIdentidad });
+    this.nativeLanguageForm.patchValue({ certificadoLenguaOriginaria: data.certificadoLenguaOriginaria });
+    this.funcionesForm.patchValue({ puestoId: data.puestoId });
+    this.militaryServiceForm.patchValue({ poseeLibreta: data.poseeLibreta, archivo: data.archivo });
+
+    // Patch arrays
+    data.certificados?.forEach(c => {
+      const group = this.fb.group({
+        nombre: [c.nombre, Validators.required],
+        descripcion: [c.descripcion, Validators.required],
+        fecha: [c.fecha ? DateTime.fromISO(c.fecha) : null, Validators.required],
+        archivo: [c.archivo, Validators.required]
+      });
+      this.certificados.push(group);
+    });
+
+    data.formacionesAcademicas?.forEach(f => {
+      const group = this.fb.group({
+        grado: [f.grado, Validators.required],
+        institucion: [f.institucion, Validators.required],
+        tituloObtenido: [f.tituloObtenido, Validators.required],
+        fecha: [f.fecha ? DateTime.fromISO(f.fecha) : null, Validators.required],
+        archivo: [f.archivo, Validators.required]
+      });
+      this.formaciones.push(group);
+    });
+
+    data.experienciasLaborales?.forEach(e => {
+      const group = this.fb.group({
+        institucion: [e.institucion, Validators.required],
+        area: [e.area, Validators.required],
+        cargo: [e.cargo, Validators.required],
+        fechaInicio: [e.fechaInicio ? DateTime.fromISO(e.fechaInicio) : null, Validators.required],
+        fechaFin: [e.fechaFin ? DateTime.fromISO(e.fechaFin) : null, Validators.required],
+        tiempoTrabajado: [e.tiempoTrabajado],
+        archivo: [e.archivo, Validators.required]
+      });
+      this.experiencias.push(group);
+    });
   }
 
   loadPuestos() {
@@ -147,7 +213,7 @@ export class PostulanteWizardComponent {
       reqs: this.reqRepository.getAll().pipe(take(1)),
       insts: this.instRepository.getAll().pipe(take(1))
     }).subscribe(({ reqs, insts }) => {
-      const activeReqs = reqs.filter(r => r.estado === 'Activo');
+      const activeReqs = reqs.filter(r => r.estado === 'Activo' || r.id === this.funcionesForm.get('puestoId')?.value);
       const mapped = activeReqs.map(r => ({
         ...r,
         institucionNombre: insts.find(i => i.id === r.institucionId)?.nombre || 'Desconocida'
@@ -356,10 +422,15 @@ export class PostulanteWizardComponent {
     const processedData = this.applyFileUrls(rawData, fileUrls);
     const formattedData = this.formatDates(processedData);
 
-    this.repository.create(formattedData).subscribe({
+    const operation = this.editId() 
+      ? this.repository.update(this.editId()!, formattedData)
+      : this.repository.create(formattedData);
+
+    operation.subscribe({
       next: () => {
-        this.snackBar.open('Postulación guardada exitosamente', 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/dashboard/home']);
+        const msg = this.editId() ? 'Postulación actualizada' : 'Postulación guardada';
+        this.snackBar.open(`${msg} exitosamente`, 'Cerrar', { duration: 3000 });
+        this.router.navigate(['/dashboard/postulantes']);
         this.loading.set(false);
       },
       error: (err) => {

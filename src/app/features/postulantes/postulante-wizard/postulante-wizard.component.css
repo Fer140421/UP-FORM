@@ -322,9 +322,33 @@
 }
 
 .final-submit {
-  height: 48px;
-  padding: 0 32px !important;
+  height: 54px;
+  padding: 0 40px !important;
   font-weight: 700 !important;
+  font-size: 1rem !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.final-submit:not([disabled]):hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3) !important;
+}
+
+.final-submit .mat-mdc-button-touch-target {
+  display: none;
+}
+
+/* Container for spinner and text */
+.final-submit span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.final-submit mat-spinner {
+  margin: 0;
 }
 
 .step-title-container {

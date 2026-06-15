@@ -1,3 +1,22 @@
+.card-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 300px;
+}
+
+.search-field {
+  flex-grow: 1;
+  margin-bottom: -1.25em;
+}
+
 .table-card {
   padding: 0 !important;
   overflow: hidden;

@@ -8,9 +8,22 @@ export const DASHBOARD_ROUTES: Routes = [
     component: MainLayoutComponent,
     children: [
       { path: 'home', component: HomeComponent },
-      { 
-        path: 'postulantes', 
-        loadComponent: () => import('../postulantes/postulante-wizard/postulante-wizard.component').then(m => m.PostulanteWizardComponent)
+      {
+        path: 'postulantes',
+        children: [
+          { 
+            path: '', 
+            loadComponent: () => import('../postulantes/postulante-list/postulante-list.component').then(m => m.PostulanteListComponent) 
+          },
+          { 
+            path: 'nuevo', 
+            loadComponent: () => import('../postulantes/postulante-wizard/postulante-wizard.component').then(m => m.PostulanteWizardComponent) 
+          },
+          { 
+            path: 'editar/:id', 
+            loadComponent: () => import('../postulantes/postulante-wizard/postulante-wizard.component').then(m => m.PostulanteWizardComponent) 
+          }
+        ]
       },
       {
         path: 'instituciones',
