@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,46 +6,126 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RequisitoPuestoRepository } from '../../../../core/repositories/requisito-puesto.repository';
-import { RequisitoPuesto, Institucion } from '../../../../core/models';
-import { finalize } from 'rxjs/operators';
+import { ProfesionalRepository } from '../../../../core/repositories/profesional.repository';
+import { RequisitoPuesto, Institucion, Profesional } from '../../../../core/models';
+import { finalize, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-requisito-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatProgressSpinnerModule],
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatProgressSpinnerModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './requisito-form.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RequisitoFormComponent {
+export class RequisitoFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private repository = inject(RequisitoPuestoRepository);
+  private profesionalRepository = inject(ProfesionalRepository);
   private dialogRef = inject(MatDialogRef<RequisitoFormComponent>);
-  public data = inject<{ requisito?: RequisitoPuesto, instituciones: Institucion[] }>(MAT_DIALOG_DATA);
+  public data = inject<{ requisito?: RequisitoPuesto; instituciones: Institucion[] }>(
+    MAT_DIALOG_DATA,
+  );
 
   loading = signal(false);
+  profesionales = signal<Profesional[]>([]);
 
   form = this.fb.group({
     institucionId: [this.data.requisito?.institucionId || '', Validators.required],
     denominacionCargo: [this.data.requisito?.denominacionCargo || '', Validators.required],
     unidadPuesto: [this.data.requisito?.unidadPuesto || '', Validators.required],
     formacion: [this.data.requisito?.formacion || '', Validators.required],
-    experienciaLaboral: [this.data.requisito?.experienciaLaboral || '', Validators.required],
-    experienciaEspecifica: [this.data.requisito?.experienciaEspecifica || '', Validators.required],
-    idiomaNativo: [this.data.requisito?.idiomaNativo || '', Validators.required],
-    estado: [this.data.requisito?.estado || 'Activo', Validators.required]
+    experienciaLaboral: [
+      this.data.requisito?.experienciaLaboral !== undefined && this.data.requisito?.experienciaLaboral !== null
+        ? Number(this.data.requisito.experienciaLaboral)
+        : 0,
+      [Validators.required, Validators.min(0)]
+    ],
+    experienciaEspecifica: [
+      this.data.requisito?.experienciaEspecifica !== undefined && this.data.requisito?.experienciaEspecifica !== null
+        ? Number(this.data.requisito.experienciaEspecifica)
+        : 0.0,
+      [Validators.required, Validators.min(0)]
+    ],
+    idiomaNativo: [this.data.requisito?.idiomaNativo ?? null, Validators.required],
+    estado: [this.data.requisito?.estado || 'Activo', Validators.required],
   });
+
+  ngOnInit() {
+    this.loadProfesionales();
+  }
+
+  loadProfesionales() {
+    this.profesionalRepository.getAll()
+      .pipe(take(1))
+      .subscribe({
+        next: (list) => {
+          this.profesionales.set(list);
+        },
+        error: (err) => {
+          console.error('Error al cargar profesionales:', err);
+        }
+      });
+  }
+
+  incrementLaboral() {
+    const current = Number(this.form.get('experienciaLaboral')?.value) || 0;
+    this.form.get('experienciaLaboral')?.setValue(current + 1);
+  }
+
+  decrementLaboral() {
+    const current = Number(this.form.get('experienciaLaboral')?.value) || 0;
+    if (current > 0) {
+      this.form.get('experienciaLaboral')?.setValue(current - 1);
+    }
+  }
+
+  incrementEspecifica() {
+    const current = Number(this.form.get('experienciaEspecifica')?.value) || 0;
+    const val = Math.round((current + 0.1) * 10) / 10;
+    this.form.get('experienciaEspecifica')?.setValue(val);
+  }
+
+  decrementEspecifica() {
+    const current = Number(this.form.get('experienciaEspecifica')?.value) || 0;
+    if (current > 0) {
+      const val = Math.round((current - 0.1) * 10) / 10;
+      this.form.get('experienciaEspecifica')?.setValue(val);
+    }
+  }
 
   save() {
     if (this.form.valid && !this.loading()) {
       this.loading.set(true);
-      const value = this.form.value as RequisitoPuesto;
-      const obs = this.data.requisito?.id 
-        ? this.repository.update(this.data.requisito.id, value)
-        : this.repository.create(value);
+      const value = this.form.value;
+      const payload: RequisitoPuesto = {
+        ...this.data.requisito,
+        ...value,
+        experienciaLaboral: value.experienciaLaboral !== undefined && value.experienciaLaboral !== null
+          ? String(value.experienciaLaboral)
+          : '0',
+        experienciaEspecifica: value.experienciaEspecifica !== undefined && value.experienciaEspecifica !== null
+          ? String(value.experienciaEspecifica)
+          : '0',
+      } as RequisitoPuesto;
 
-      obs.pipe(finalize(() => this.loading.set(false)))
-         .subscribe(() => this.dialogRef.close(true));
+      const obs = this.data.requisito?.id
+        ? this.repository.update(this.data.requisito.id, payload)
+        : this.repository.create(payload);
+
+      obs.pipe(finalize(() => this.loading.set(false))).subscribe(() => this.dialogRef.close(true));
     }
   }
 }

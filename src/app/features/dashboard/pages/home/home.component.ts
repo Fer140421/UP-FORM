@@ -8,7 +8,7 @@ import { MatCardModule } from '@angular/material/card';
   template: `
     <mat-card>
       <mat-card-header>
-        <mat-card-title>Bienvenido al Sistema UP-FORM</mat-card-title>
+        <mat-card-title>Sistema de control de personal  gestión 2026</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <p>Utilice el menú lateral para navegar por las diferentes opciones del sistema.</p>

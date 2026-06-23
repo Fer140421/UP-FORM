@@ -20,13 +20,14 @@ import { DateTime } from 'luxon';
 import { PostulanteRepository } from '../../../core/repositories/postulante.repository';
 import { RequisitoPuestoRepository } from '../../../core/repositories/requisito-puesto.repository';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
+import { ProfesionalRepository } from '../../../core/repositories/profesional.repository';
 import { CloudinaryService } from '../../../core/services/cloudinary.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { forkJoin, Observable, of } from 'rxjs';
 import { switchMap, catchError, map, take, finalize } from 'rxjs/operators';
-import { Postulante, RequisitoPuesto } from '../../../core/models';
+import { Postulante, RequisitoPuesto, Profesional } from '../../../core/models';
 
 @Component({
   selector: 'app-postulante-wizard',
@@ -61,6 +62,7 @@ export class PostulanteWizardComponent {
   private repository = inject(PostulanteRepository);
   private reqRepository = inject(RequisitoPuestoRepository);
   private instRepository = inject(InstitucionRepository);
+  private profesionalRepository = inject(ProfesionalRepository);
   private cloudinaryService = inject(CloudinaryService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
@@ -69,6 +71,7 @@ export class PostulanteWizardComponent {
   isLinear = true;
   loading = signal(false);
   editId = signal<string | null>(null);
+  profesionales = signal<Profesional[]>([]);
 
   // Map to store files to upload later
   private filesToUpload: Map<string, File> = new Map();
@@ -142,7 +145,17 @@ export class PostulanteWizardComponent {
 
   ngOnInit() {
     this.loadPuestos();
+    this.loadProfesionales();
     this.checkEditMode();
+  }
+
+  loadProfesionales() {
+    this.profesionalRepository.getAll()
+      .pipe(take(1))
+      .subscribe({
+        next: (list) => this.profesionales.set(list),
+        error: (err) => console.error('Error al cargar profesionales:', err)
+      });
   }
 
   checkEditMode() {

@@ -17,9 +17,22 @@ import { finalize, switchMap } from 'rxjs/operators';
   imports: [MatDialogModule, MatTableModule, MatButtonModule, MatIconModule, MatSnackBarModule, MatProgressSpinnerModule],
   templateUrl: './asignacion-modal.modal.html',
   styles: [`
-    table { width: 100%; margin-bottom: 20px; }
+    .table-container { width: 100%; overflow-x: auto; margin-bottom: 20px; }
+    table { width: 100%; min-width: 800px; }
     .postulantes-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
     mat-spinner { vertical-align: middle; }
+    .badge-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background-color: #fee2e2;
+      color: #ef4444;
+    }
+    .badge-status.active {
+      background-color: #d1fae5;
+      color: #10b981;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

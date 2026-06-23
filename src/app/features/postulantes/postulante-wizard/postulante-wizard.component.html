@@ -323,7 +323,11 @@
 
                   <mat-form-field appearance="outline">
                     <mat-label>Título Obtenido</mat-label>
-                    <input matInput formControlName="tituloObtenido" required>
+                    <mat-select formControlName="tituloObtenido" required>
+                      @for (prof of profesionales(); track prof.id) {
+                      <mat-option [value]="prof.name">{{prof.name}}</mat-option>
+                      }
+                    </mat-select>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline">

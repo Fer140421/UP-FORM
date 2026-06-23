@@ -68,7 +68,7 @@ export interface RequisitoPuesto {
   formacion: string;
   experienciaLaboral: string;
   experienciaEspecifica: string;
-  idiomaNativo: string;
+  idiomaNativo: boolean;
   estado: 'Activo' | 'Inactivo';
 }
 
@@ -77,4 +77,9 @@ export interface Asignacion {
   postulanteId: string;
   requisitoId: string;
   fechaAsignacion: string;
+}
+
+export interface Profesional {
+  id: string;
+  name: string;
 }

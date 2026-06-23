@@ -1,18 +1,22 @@
-<h2 mat-dialog-title>{{ data.requisito?.id ? 'Editar' : 'Nuevo' }} Requisito</h2>
+<h2 mat-dialog-title>{{ data.requisito?.id ? 'Editar' : 'Nuevo' }} Cargo</h2>
 <mat-dialog-content>
   <form [formGroup]="form" class="requisito-form">
     <mat-form-field appearance="outline">
       <mat-label>Institución</mat-label>
       <mat-select formControlName="institucionId" required>
         @for (inst of data.instituciones; track inst.id) {
-          <mat-option [value]="inst.id">{{inst.nombre}}</mat-option>
+        <mat-option [value]="inst.id">{{inst.nombre}}</mat-option>
         }
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Denominación del Cargo</mat-label>
-      <input matInput formControlName="denominacionCargo" required>
+      <mat-select formControlName="denominacionCargo" required>
+        @for (prof of profesionales(); track prof.id) {
+        <mat-option [value]="prof.name">{{prof.name}}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
@@ -26,50 +30,121 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>Experiencia Laboral General</mat-label>
-      <input matInput formControlName="experienciaLaboral" required>
+      <mat-label>Experiencia Laboral General (Años)</mat-label>
+      <input matInput type="number" formControlName="experienciaLaboral" min="0" step="1" required>
+      <div matSuffix class="suffix-buttons">
+        <button mat-icon-button type="button" (click)="decrementLaboral()" matTooltip="Decrementar" tabindex="-1">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="incrementLaboral()" matTooltip="Incrementar" tabindex="-1">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>Experiencia Especifica</mat-label>
-      <input matInput formControlName="experienciaEspecifica" required>
+      <mat-label>Experiencia Específica (Años en decimal)</mat-label>
+      <input matInput type="number" formControlName="experienciaEspecifica" min="0" step="0.1" required>
+      <div matSuffix class="suffix-buttons">
+        <button mat-icon-button type="button" (click)="decrementEspecifica()" matTooltip="Decrementar" tabindex="-1">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="incrementEspecifica()" matTooltip="Incrementar" tabindex="-1">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>Idioma Nativo</mat-label>
-      <input matInput formControlName="idiomaNativo" required>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Estado</mat-label>
-      <mat-select formControlName="estado" required>
-        <mat-option value="Activo">Activo</mat-option>
-        <mat-option value="Inactivo">Inactivo</mat-option>
+      <mat-label>Idioma nativo</mat-label>
+      <mat-select formControlName="idiomaNativo" required>
+        <mat-option [value]="true">Requerido</mat-option>
+        <mat-option [value]="false">No requerido</mat-option>
       </mat-select>
     </mat-form-field>
+
+    @if (data.requisito?.id) {
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado" required>
+          <mat-option value="Activo">Activo</mat-option>
+          <mat-option value="Inactivo">Inactivo</mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close [disabled]="loading()">Cancelar</button>
   <button mat-raised-button color="primary" [disabled]="form.invalid || loading()" (click)="save()">
     @if (loading()) {
-      <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
-      Guardando...
+    <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+    Guardando...
     } @else {
-      Guardar
+    Guardar
     }
   </button>
 </mat-dialog-actions>
 
 <style>
+  mat-dialog-content {
+    overflow-x: hidden !important;
+  }
+
   .requisito-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
     padding-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .suffix-buttons {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: -4px;
+  }
+
+  .suffix-buttons button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .suffix-buttons mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #3f51b5;
+  }
+
+  /* Ocultar flechas de incremento/decremento nativas en navegadores */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+
   @media (max-width: 600px) {
-    .requisito-form { grid-template-columns: 1fr; }
+    .requisito-form {
+      grid-template-columns: 1fr;
+    }
   }
-  mat-spinner { vertical-align: middle; }
+
+  mat-spinner {
+    vertical-align: middle;
+  }
 </style>

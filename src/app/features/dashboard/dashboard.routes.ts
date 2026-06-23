@@ -30,6 +30,10 @@ export const DASHBOARD_ROUTES: Routes = [
         loadComponent: () => import('../instituciones/institucion-list/institucion-list.component').then(m => m.InstitucionListComponent)
       },
       {
+        path: 'profesionales',
+        loadComponent: () => import('../profesionales/profesional-list/profesional-list.component').then(m => m.ProfesionalListComponent)
+      },
+      {
         path: 'requisitos',
         loadComponent: () => import('../requisitos/requisito-list/requisito-list.component').then(m => m.RequisitoListComponent)
       },

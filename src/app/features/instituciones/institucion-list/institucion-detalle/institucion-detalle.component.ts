@@ -73,6 +73,13 @@ import { forkJoin } from 'rxjs';
             <td mat-cell *matCellDef="let element"> {{element.experienciaLaboral}} </td>
           </ng-container>
 
+          <ng-container matColumnDef="idiomaNativo">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Idioma Nativo </th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.idiomaNativo ? 'Requerido' : 'No requerido' }}
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="estado">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
             <td mat-cell *matCellDef="let element">
@@ -126,8 +133,8 @@ import { forkJoin } from 'rxjs';
     <style>
       .search-container { margin-bottom: 16px; }
       .search-field { width: 100%; }
-      .table-container { min-height: 200px; }
-      .modern-table { width: 100%; }
+      .table-container { min-height: 200px; overflow-x: auto; width: 100%; }
+      .modern-table { width: 100%; min-width: 800px; }
       .font-semibold { font-weight: 600; color: #333; }
       .badge-status {
         padding: 4px 12px;
@@ -172,7 +179,7 @@ export class InstitucionDetalleComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   loading = signal(false);
-  displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experiencia', 'estado', 'acciones'];
+  displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experiencia', 'idiomaNativo', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
