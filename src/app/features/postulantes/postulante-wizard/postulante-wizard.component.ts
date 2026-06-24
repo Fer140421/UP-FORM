@@ -702,6 +702,37 @@ export class PostulanteWizardComponent {
     control?.updateValueAndValidity();
   }
 
+  getStepNumber(step: 'personal' | 'nativeLanguage' | 'certificates' | 'education' | 'experience' | 'military' | 'electoral' | 'summary'): number {
+    const steps = ['personal', 'nativeLanguage', 'certificates', 'education', 'experience'];
+
+    if (this.isMilitaryStepVisible()) {
+      steps.push('military');
+    }
+
+    steps.push('electoral', 'summary');
+    return steps.indexOf(step) + 1;
+  }
+
+  isMilitaryStepVisible(): boolean {
+    return this.personalDataForm.get('genero')?.value === 'Masculino';
+  }
+
+  formatSummaryDate(value: unknown): string {
+    if (!value) return 'No registrado';
+
+    if ((value as DateTime)?.toFormat) {
+      return (value as DateTime).toFormat('dd/MM/yyyy');
+    }
+
+    return String(value);
+  }
+
+  getArchivoResumen(value: unknown): string {
+    const fileName = String(value || '');
+    if (!fileName || fileName.includes('_defecto.pdf')) return 'No adjunto';
+    return fileName;
+  }
+
   getFotoPreviewUrl(): string {
     const file = this.filesToUpload.get('foto');
     if (file) {

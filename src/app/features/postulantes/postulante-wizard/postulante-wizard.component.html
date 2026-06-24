@@ -12,7 +12,7 @@
         
         <div class="step-content">
           <div class="step-title-container">
-            <h3>1. Datos Personales</h3>
+            <h3>{{ getStepNumber('personal') }}. Datos Personales</h3>
             <p>Información básica de contacto y perfil.</p>
           </div>
           <div class="form-grid">
@@ -166,7 +166,7 @@
         <ng-template matStepLabel><mat-icon>translate</mat-icon></ng-template>
         <div class="step-content">
           <div class="step-title-container">
-            <h3>3. Idioma Originario</h3>
+            <h3>{{ getStepNumber('nativeLanguage') }}. Idioma Originario</h3>
             <p>Registre sus conocimientos de lenguas originarias.</p>
           </div>
 
@@ -266,7 +266,7 @@
       <ng-template matStepLabel><mat-icon>card_membership</mat-icon></ng-template>
       <div class="step-content">
         <div class="step-title-container section-header-inline">
-          <h3>4. Capacitaciones</h3>
+          <h3>{{ getStepNumber('certificates') }}. Capacitaciones</h3>
           <button mat-stroked-button color="primary" (click)="addCertificado()">
             <mat-icon>add</mat-icon> Agregar Capacitación
           </button>
@@ -338,6 +338,96 @@
           </div>
         </div>
       </div>
+      <div class="complete-summary">
+        <div class="summary-profile-card">
+          <img [src]="getFotoPreviewUrl()" alt="Fotografía del postulante" class="summary-photo">
+          <div class="summary-profile-info">
+            <h3>{{ personalDataForm.get('nombres')?.value }} {{ personalDataForm.get('apellidoPaterno')?.value }} {{ personalDataForm.get('apellidoMaterno')?.value }}</h3>
+            <p><mat-icon>badge</mat-icon> {{ personalDataForm.get('carnet')?.value }} - {{ personalDataForm.get('expedido')?.value || 'Sin expedido' }}</p>
+            <p><mat-icon>phone</mat-icon> {{ personalDataForm.get('celular')?.value }} | {{ personalDataForm.get('correo')?.value || 'Sin correo' }}</p>
+            <p><mat-icon>business_center</mat-icon> {{ getSelectedPuestoName() }}</p>
+          </div>
+        </div>
+
+        <div class="summary-grid full-summary-grid">
+          <div class="summary-section">
+            <h4>Información Personal</h4>
+            <div class="summary-row"><span class="label">Fecha de nacimiento</span><span class="value">{{ formatSummaryDate(personalDataForm.get('fechaNacimiento')?.value) }}</span></div>
+            <div class="summary-row"><span class="label">Género</span><span class="value">{{ personalDataForm.get('genero')?.value }}</span></div>
+            <div class="summary-row"><span class="label">Departamento</span><span class="value">{{ personalDataForm.get('departamento')?.value }}</span></div>
+            <div class="summary-row"><span class="label">Localidad</span><span class="value">{{ personalDataForm.get('localidad')?.value }}</span></div>
+            <div class="summary-row"><span class="label">Dirección</span><span class="value">{{ personalDataForm.get('direccion')?.value }}</span></div>
+          </div>
+
+          <div class="summary-section">
+            <h4>Idioma Originario</h4>
+            @for (idioma of idiomasOriginarios.value; track $index) {
+              <div class="summary-item">
+                <strong>{{ idioma.idioma === 'Otro' ? idioma.otroIdioma : idioma.idioma }}</strong>
+                <span>{{ idioma.institucion }} - {{ formatSummaryDate(idioma.fecha) }}</span>
+              </div>
+            } @empty {
+              <p class="summary-empty">No registró idiomas originarios.</p>
+            }
+          </div>
+
+          <div class="summary-section">
+            <h4>Capacitaciones</h4>
+            @for (cert of certificados.value; track $index) {
+              <div class="summary-item">
+                <strong>{{ cert.areaCapacitacion || cert.nombre }}</strong>
+                <span>{{ cert.institucion || cert.descripcion }} - {{ formatSummaryDate(cert.fecha) }}</span>
+                <span>Archivo: {{ getArchivoResumen(cert.archivo) }}</span>
+              </div>
+            } @empty {
+              <p class="summary-empty">No agregó capacitaciones.</p>
+            }
+          </div>
+
+          <div class="summary-section">
+            <h4>Formación Académica</h4>
+            @for (formacion of formaciones.value; track $index) {
+              <div class="summary-item">
+                <strong>{{ formacion.grado }} - {{ formacion.tituloObtenido }}</strong>
+                <span>{{ formacion.profesion || 'Sin profesión' }}</span>
+                <span>{{ formacion.institucion }} - {{ formatSummaryDate(formacion.fecha) }}</span>
+                <span>Archivo: {{ getArchivoResumen(formacion.archivo) }}</span>
+              </div>
+            } @empty {
+              <p class="summary-empty">No agregó formación académica.</p>
+            }
+          </div>
+
+          <div class="summary-section">
+            <h4>Experiencia Laboral</h4>
+            @for (exp of experiencias.value; track $index) {
+              <div class="summary-item">
+                <strong>{{ exp.cargo }} - {{ exp.institucion }}</strong>
+                <span>{{ exp.area }}</span>
+                <span>{{ formatSummaryDate(exp.fechaInicio) }} a {{ formatSummaryDate(exp.fechaFin) }} | {{ exp.tiempoTrabajado || 'Sin cálculo' }}</span>
+                <span>Archivo: {{ getArchivoResumen(exp.archivo) }}</span>
+              </div>
+            } @empty {
+              <p class="summary-empty">No agregó experiencia laboral.</p>
+            }
+            <div class="summary-total">Tiempo total: {{ totalTiempoServicio() }}</div>
+          </div>
+
+          <div class="summary-section">
+            <h4>Servicio Militar y Participación</h4>
+            @if (isMilitaryStepVisible()) {
+              <div class="summary-row"><span class="label">Libreta militar</span><span class="value">{{ militaryServiceForm.get('poseeLibreta')?.value }}</span></div>
+              <div class="summary-row"><span class="label">Archivo</span><span class="value">{{ getArchivoResumen(militaryServiceForm.get('archivo')?.value) }}</span></div>
+            } @else {
+              <div class="summary-row"><span class="label">Servicio militar</span><span class="value">No aplica</span></div>
+            }
+            <div class="summary-row"><span class="label">Participación electoral</span><span class="value">{{ getParticipacionElectoralResumen() }}</span></div>
+            <div class="summary-row"><span class="label">Documento de identidad</span><span class="value">{{ getArchivoResumen(identityDocForm.get('documentoIdentidad')?.value) }}</span></div>
+            <div class="summary-row"><span class="label">Certificado lengua originaria</span><span class="value">{{ getArchivoResumen(nativeLanguageForm.get('certificadoLenguaOriginaria')?.value) }}</span></div>
+          </div>
+        </div>
+      </div>
+
       <div class="step-actions">
         <button mat-button matStepperPrevious>Atrás</button>
         <button mat-flat-button color="primary" matStepperNext [disabled]="certificatesForm.invalid">Continuar</button>
@@ -393,7 +483,7 @@
       <ng-template matStepLabel><mat-icon>school</mat-icon></ng-template>
       <div class="step-content">
         <div class="step-title-container section-header-inline">
-          <h3>6. Formación Académica</h3>
+          <h3>{{ getStepNumber('education') }}. Formación Académica</h3>
           <button mat-stroked-button color="primary" (click)="addFormacion()">
             <mat-icon>school</mat-icon> Agregar Título
           </button>
@@ -486,7 +576,7 @@
       <ng-template matStepLabel><mat-icon>work</mat-icon></ng-template>
       <div class="step-content">
         <div class="step-title-container section-header-inline">
-          <h3>7. Experiencia Laboral</h3>
+          <h3>{{ getStepNumber('experience') }}. Experiencia Laboral</h3>
           <button mat-stroked-button color="primary" (click)="addExperiencia()">
             <mat-icon>work_outline</mat-icon> Agregar Experiencia
           </button>
@@ -576,7 +666,7 @@
           
           <div class="step-content centered-content">
             <div class="step-title-container">
-              <h3>8. Servicio Militar</h3>
+              <h3>{{ getStepNumber('military') }}. Servicio Militar</h3>
             </div>
             <div class="upload-illustration">
               <mat-icon>military_tech</mat-icon>
@@ -622,7 +712,7 @@
         <ng-template matStepLabel><mat-icon>how_to_vote</mat-icon></ng-template>
         <div class="step-content">
           <div class="step-title-container">
-            <h3>Participación Electoral</h3>
+            <h3>{{ getStepNumber('electoral') }}. Participación Electoral</h3>
             <p>Seleccione los procesos electorales en los que ha participado.</p>
           </div>
           
@@ -654,7 +744,7 @@
       <div class="step-content">
         <div class="summary-card-container">
           <div class="step-title-container centered">
-            <h3>Resumen Final</h3>
+            <h3>{{ getStepNumber('summary') }}. Resumen Final</h3>
           </div>
           <div class="summary-header">
             <mat-icon>check_circle</mat-icon>
@@ -726,6 +816,96 @@
 
       <div class="step-actions">
         <button mat-button matStepperPrevious>Atrás</button>
+        <div class="final-complete-summary">
+          <div class="summary-profile-card">
+            <img [src]="getFotoPreviewUrl()" alt="Fotografía del postulante" class="summary-photo">
+            <div class="summary-profile-info">
+              <h3>{{ personalDataForm.get('nombres')?.value }} {{ personalDataForm.get('apellidoPaterno')?.value }} {{ personalDataForm.get('apellidoMaterno')?.value }}</h3>
+              <p><mat-icon>badge</mat-icon> {{ personalDataForm.get('carnet')?.value }} - {{ personalDataForm.get('expedido')?.value || 'Sin expedido' }}</p>
+              <p><mat-icon>phone</mat-icon> {{ personalDataForm.get('celular')?.value }} | {{ personalDataForm.get('correo')?.value || 'Sin correo' }}</p>
+              <p><mat-icon>business_center</mat-icon> {{ getSelectedPuestoName() }}</p>
+            </div>
+          </div>
+
+          <div class="summary-grid full-summary-grid">
+            <div class="summary-section">
+              <h4>Información Personal</h4>
+              <div class="summary-row"><span class="label">Fecha de nacimiento</span><span class="value">{{ formatSummaryDate(personalDataForm.get('fechaNacimiento')?.value) }}</span></div>
+              <div class="summary-row"><span class="label">Género</span><span class="value">{{ personalDataForm.get('genero')?.value }}</span></div>
+              <div class="summary-row"><span class="label">Departamento</span><span class="value">{{ personalDataForm.get('departamento')?.value }}</span></div>
+              <div class="summary-row"><span class="label">Localidad</span><span class="value">{{ personalDataForm.get('localidad')?.value }}</span></div>
+              <div class="summary-row"><span class="label">Dirección</span><span class="value">{{ personalDataForm.get('direccion')?.value }}</span></div>
+            </div>
+
+            <div class="summary-section">
+              <h4>Idioma Originario</h4>
+              @for (idioma of idiomasOriginarios.value; track $index) {
+                <div class="summary-item">
+                  <strong>{{ idioma.idioma === 'Otro' ? idioma.otroIdioma : idioma.idioma }}</strong>
+                  <span>{{ idioma.institucion }} - {{ formatSummaryDate(idioma.fecha) }}</span>
+                </div>
+              } @empty {
+                <p class="summary-empty">No registró idiomas originarios.</p>
+              }
+            </div>
+
+            <div class="summary-section">
+              <h4>Capacitaciones</h4>
+              @for (cert of certificados.value; track $index) {
+                <div class="summary-item">
+                  <strong>{{ cert.areaCapacitacion || cert.nombre }}</strong>
+                  <span>{{ cert.institucion || cert.descripcion }} - {{ formatSummaryDate(cert.fecha) }}</span>
+                  <span>Archivo: {{ getArchivoResumen(cert.archivo) }}</span>
+                </div>
+              } @empty {
+                <p class="summary-empty">No agregó capacitaciones.</p>
+              }
+            </div>
+
+            <div class="summary-section">
+              <h4>Formación Académica</h4>
+              @for (formacion of formaciones.value; track $index) {
+                <div class="summary-item">
+                  <strong>{{ formacion.grado }} - {{ formacion.tituloObtenido }}</strong>
+                  <span>{{ formacion.profesion || 'Sin profesión' }}</span>
+                  <span>{{ formacion.institucion }} - {{ formatSummaryDate(formacion.fecha) }}</span>
+                  <span>Archivo: {{ getArchivoResumen(formacion.archivo) }}</span>
+                </div>
+              } @empty {
+                <p class="summary-empty">No agregó formación académica.</p>
+              }
+            </div>
+
+            <div class="summary-section">
+              <h4>Experiencia Laboral</h4>
+              @for (exp of experiencias.value; track $index) {
+                <div class="summary-item">
+                  <strong>{{ exp.cargo }} - {{ exp.institucion }}</strong>
+                  <span>{{ exp.area }}</span>
+                  <span>{{ formatSummaryDate(exp.fechaInicio) }} a {{ formatSummaryDate(exp.fechaFin) }} | {{ exp.tiempoTrabajado || 'Sin cálculo' }}</span>
+                  <span>Archivo: {{ getArchivoResumen(exp.archivo) }}</span>
+                </div>
+              } @empty {
+                <p class="summary-empty">No agregó experiencia laboral.</p>
+              }
+              <div class="summary-total">Tiempo total: {{ totalTiempoServicio() }}</div>
+            </div>
+
+            <div class="summary-section">
+              <h4>Servicio Militar y Participación</h4>
+              @if (isMilitaryStepVisible()) {
+                <div class="summary-row"><span class="label">Libreta militar</span><span class="value">{{ militaryServiceForm.get('poseeLibreta')?.value }}</span></div>
+                <div class="summary-row"><span class="label">Archivo</span><span class="value">{{ getArchivoResumen(militaryServiceForm.get('archivo')?.value) }}</span></div>
+              } @else {
+                <div class="summary-row"><span class="label">Servicio militar</span><span class="value">No aplica</span></div>
+              }
+              <div class="summary-row"><span class="label">Participación electoral</span><span class="value">{{ getParticipacionElectoralResumen() }}</span></div>
+              <div class="summary-row"><span class="label">Documento de identidad</span><span class="value">{{ getArchivoResumen(identityDocForm.get('documentoIdentidad')?.value) }}</span></div>
+              <div class="summary-row"><span class="label">Certificado lengua originaria</span><span class="value">{{ getArchivoResumen(nativeLanguageForm.get('certificadoLenguaOriginaria')?.value) }}</span></div>
+            </div>
+          </div>
+        </div>
+
         <button mat-flat-button color="primary" class="final-submit" (click)="submit()" [disabled]="loading()">
           @if (loading()) {
             <mat-spinner diameter="24" color="accent"></mat-spinner>
