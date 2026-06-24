@@ -1,9 +1,7 @@
 <mat-sidenav-container class="sidenav-container" autosize>
-  <mat-sidenav #drawer class="sidenav" fixedInViewport
-      [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-      [mode]="(isHandset$ | async) ? 'over' : 'side'"
-      [opened]="(isHandset$ | async) === false">
-    
+  <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
+
     <div class="logo-container">
       <span class="logo-text">EMPLEA</span>
     </div>
@@ -20,7 +18,7 @@
         <mat-icon matListItemIcon>person_add</mat-icon>
         <span matListItemTitle>Postulantes</span>
       </a>
-            <a mat-list-item routerLink="/dashboard/profesionales" routerLinkActive="active-link">
+      <a mat-list-item routerLink="/dashboard/profesionales" routerLinkActive="active-link">
         <mat-icon matListItemIcon>assignment_ind</mat-icon>
         <span matListItemTitle>Profesiones</span>
       </a>
@@ -28,13 +26,13 @@
         <mat-icon matListItemIcon>business</mat-icon>
         <span matListItemTitle>Instituciones</span>
       </a>
-      <a mat-list-item routerLink="/dashboard/requisitos" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>rule</mat-icon>
-        <span matListItemTitle>Requisitos</span>
-      </a>
       <a mat-list-item routerLink="/dashboard/asignaciones" routerLinkActive="active-link">
         <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
         <span matListItemTitle>Asignaciones</span>
+      </a>
+      <a mat-list-item routerLink="/dashboard/requisitos" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>rule</mat-icon>
+        <span matListItemTitle>Requisitos</span>
       </a>
 
       <!-- <div class="nav-section-label">Sistema</div>
@@ -60,24 +58,20 @@
   <mat-sidenav-content>
     <mat-toolbar class="main-toolbar">
       @if (isHandset$ | async) {
-        <button
-          type="button"
-          aria-label="Toggle sidenav"
-          mat-icon-button
-          (click)="drawer.toggle()">
-          <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
-        </button>
+      <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.toggle()">
+        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+      </button>
       }
       <span class="spacer"></span>
-      
-      
+
+
       <button mat-button [matMenuTriggerFor]="userMenu" class="profile-trigger">
         <div class="profile-content">
           <span class="user-display-name">{{ currentUser()?.displayName }}</span>
           <mat-icon iconPositionEnd>expand_more</mat-icon>
         </div>
       </button>
-      
+
       <mat-menu #userMenu="matMenu" class="modern-menu">
         <!--<button mat-menu-item>
           <mat-icon>person_outline</mat-icon>
