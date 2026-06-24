@@ -2,18 +2,15 @@ import { Component, inject, signal, OnInit, ViewChild, ChangeDetectionStrategy }
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { Router } from '@angular/router';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
-import { RequisitoPuestoRepository } from '../../../core/repositories/requisito-puesto.repository';
-import { Institucion, RequisitoPuesto } from '../../../core/models';
-import { AsignacionModalComponent } from './asignacion-modal/asignacion-modal.modal';
-import { forkJoin } from 'rxjs';
+import { Institucion } from '../../../core/models';
 import { finalize, take } from 'rxjs/operators';
 
 @Component({
@@ -23,7 +20,6 @@ import { finalize, take } from 'rxjs/operators';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatCardModule,
     MatProgressBarModule,
     MatFormFieldModule,
@@ -37,10 +33,8 @@ import { finalize, take } from 'rxjs/operators';
 })
 export class AsignacionListComponent implements OnInit {
   private instRepository = inject(InstitucionRepository);
-  private reqRepository = inject(RequisitoPuestoRepository);
-  private dialog = inject(MatDialog);
+  private router = inject(Router);
 
-  requisitos = signal<RequisitoPuesto[]>([]);
   loading = signal(false);
   displayedColumns: string[] = ['nombre', 'acciones'];
   dataSource = new MatTableDataSource<Institucion>([]);
@@ -54,17 +48,16 @@ export class AsignacionListComponent implements OnInit {
 
   loadData() {
     this.loading.set(true);
-    forkJoin({
-      insts: this.instRepository.getAll().pipe(take(1)),
-      reqs: this.reqRepository.getAll().pipe(take(1))
-    })
-    .pipe(finalize(() => this.loading.set(false)))
-    .subscribe(({ insts, reqs }) => {
-      this.dataSource.data = insts;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      this.requisitos.set(reqs);
-    });
+    this.instRepository.getAll()
+      .pipe(
+        take(1),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe(insts => {
+        this.dataSource.data = insts;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+      });
   }
 
   applyFilter(event: Event) {
@@ -77,12 +70,6 @@ export class AsignacionListComponent implements OnInit {
   }
 
   openAsignacion(institucion: Institucion) {
-    const instRequisitos = this.requisitos().filter(r => r.institucionId === institucion.id);
-    
-    this.dialog.open(AsignacionModalComponent, {
-      width: '90%',
-      maxWidth: '1200px',
-      data: { institucion, requisitos: instRequisitos }
-    });
+    this.router.navigate(['/dashboard/asignaciones', institucion.id]);
   }
 }

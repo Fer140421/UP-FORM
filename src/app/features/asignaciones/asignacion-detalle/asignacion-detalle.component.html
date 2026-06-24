@@ -1,0 +1,97 @@
+<div class="page-header">
+  <button mat-icon-button (click)="volver()" aria-label="Volver a asignaciones">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <h1 class="section-title">Cargos Requeridos: {{ institucion()?.nombre }}</h1>
+</div>
+
+<mat-card class="table-card">
+  <div class="card-content">
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar cargo</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Abogado" #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
+    }
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="modern-table">
+        <ng-container matColumnDef="cargo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Denominación </th>
+          <td mat-cell *matCellDef="let element" class="font-semibold"> {{element.denominacionCargo}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="unidad">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Unidad </th>
+          <td mat-cell *matCellDef="let element"> {{element.unidadPuesto}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="formacion">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Formación </th>
+          <td mat-cell *matCellDef="let element"> {{element.formacion}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="experiencia">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia </th>
+          <td mat-cell *matCellDef="let element"> {{element.experienciaLaboral}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="idiomaNativo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Idioma Nativo </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.idiomaNativo ? 'Requerido' : 'No requerido' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="badge-status" [class.active]="element.estado === 'Activo'" [class.inactive]="element.estado === 'Inactivo'">
+              {{ element.estado === 'Activo' ? 'Disponible' : 'Asignado' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="text-right"> Acciones </th>
+          <td mat-cell *matCellDef="let element" class="text-right">
+            <div class="action-buttons">
+              @if (element.asignacion) {
+                <button mat-icon-button color="primary" (click)="verAsignado(element.asignacion)" matTooltip="Ver Persona Asignada">
+                  <mat-icon>person</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="limpiarAsignacion(element.asignacion, element.id)" matTooltip="Limpiar Puesto">
+                  <mat-icon>person_remove</mat-icon>
+                </button>
+              } @else {
+                <button mat-stroked-button color="accent" (click)="asignarPuesto(element)" matTooltip="Asignar Postulante">
+                  <mat-icon>person_add</mat-icon> Asignar
+                </button>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+            @if (!loading()) {
+              <div class="empty-state">
+                <mat-icon>rule</mat-icon>
+                <p>No se encontraron resultados para "{{input.value}}"</p>
+              </div>
+            }
+          </td>
+        </tr>
+      </table>
+    </div>
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" aria-label="Seleccionar página"></mat-paginator>
+  </div>
+</mat-card>

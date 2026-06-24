@@ -14,7 +14,6 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
 import { Institucion } from '../../../core/models';
 import { InstitucionFormComponent } from './institucion-form/institucion-form.component';
-import { InstitucionDetalleComponent } from './institucion-detalle/institucion-detalle.component';
 import { ConfirmDialogComponent } from '../../dashboard/pages/home/confirm-dialog.component';
 import { finalize, take } from 'rxjs/operators';
 
@@ -93,13 +92,6 @@ export class InstitucionListComponent implements OnInit {
       if (result) {
         this.loadData();
       }
-    });
-  }
-
-  ingresar(institucion: Institucion) {
-    this.dialog.open(InstitucionDetalleComponent, {
-      width: '800px',
-      data: institucion
     });
   }
 

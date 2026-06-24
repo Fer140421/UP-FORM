@@ -39,7 +39,16 @@ export const DASHBOARD_ROUTES: Routes = [
       },
       {
         path: 'asignaciones',
-        loadComponent: () => import('../asignaciones/asignacion-list/asignacion-list.component').then(m => m.AsignacionListComponent)
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('../asignaciones/asignacion-list/asignacion-list.component').then(m => m.AsignacionListComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('../asignaciones/asignacion-detalle/asignacion-detalle.component').then(m => m.AsignacionDetalleComponent)
+          }
+        ]
       },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]

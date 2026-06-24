@@ -1,0 +1,95 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  margin: 0;
+}
+
+.table-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.card-content {
+  padding: 24px;
+}
+
+.search-container {
+  margin-bottom: 16px;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.loading-bar {
+  margin-bottom: 15px;
+}
+
+.table-container {
+  min-height: 200px;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.modern-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+.font-semibold {
+  font-weight: 600;
+  color: #333;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.badge-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f0f0f0;
+  color: #666;
+}
+
+.badge-status.active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge-status.inactive {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+.empty-cell {
+  border-bottom: none;
+}
