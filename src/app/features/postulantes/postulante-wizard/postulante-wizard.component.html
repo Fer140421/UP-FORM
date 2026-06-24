@@ -294,8 +294,8 @@
                   <mat-form-field appearance="outline">
                     <mat-label>Área de Capacitación</mat-label>
                     <mat-select formControlName="areaCapacitacion" required>
-                      @for (prof of profesionales(); track prof.id) {
-                        <mat-option [value]="prof.name">{{ prof.name }}</mat-option>
+                      @for (area of areasCapacitacion; track area) {
+                        <mat-option [value]="area">{{ area }}</mat-option>
                       }
                     </mat-select>
                   </mat-form-field>

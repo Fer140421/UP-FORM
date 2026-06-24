@@ -65,6 +65,9 @@
                 <button mat-icon-button color="primary" (click)="verAsignado(element.asignacion)" matTooltip="Ver Persona Asignada">
                   <mat-icon>person</mat-icon>
                 </button>
+                <button mat-icon-button color="accent" (click)="generarReporte(element.asignacion, element)" matTooltip="Generar reporte PDF">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                </button>
                 <button mat-icon-button color="warn" (click)="limpiarAsignacion(element.asignacion, element.id)" matTooltip="Limpiar Puesto">
                   <mat-icon>person_remove</mat-icon>
                 </button>
