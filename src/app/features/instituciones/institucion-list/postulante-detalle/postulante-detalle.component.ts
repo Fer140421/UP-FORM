@@ -25,7 +25,7 @@ import { Postulante } from '../../../../core/models';
         <img [src]="data.foto" alt="Foto perfil" class="foto-perfil">
         <div class="info-basica">
           <h3>{{ data.nombres }} {{ data.apellidoPaterno }} {{ data.apellidoMaterno }}</h3>
-          <p><mat-icon>badge</mat-icon> CI: {{ data.carnet }}</p>
+          <p><mat-icon>badge</mat-icon> CI: {{ data.carnet }} (Expedido en: {{ data.expedido || 'No registrado' }})</p>
           <p><mat-icon>phone</mat-icon> {{ data.celular }}</p>
           <p><mat-icon>email</mat-icon> {{ data.correo || 'No registrado' }}</p>
         </div>
@@ -50,16 +50,49 @@ import { Postulante } from '../../../../core/models';
         <mat-list>
           @for (f of data.formacionesAcademicas; track $index) {
             <mat-list-item>
-              <span matListItemTitle>{{ f.grado }}: {{ f.tituloObtenido }}</span>
+              <span matListItemTitle>{{ f.grado }}: {{ f.tituloObtenido }} @if (f.profesion) { ({{ f.profesion }}) }</span>
               <span matListItemLine>{{ f.institucion }} ({{ f.fecha }})</span>
               <div matListItemMeta>
-                <button mat-icon-button color="primary" (click)="descargar(f.archivo)" matTooltip="Descargar Documento">
-                  <mat-icon>download</mat-icon>
-                </button>
+                @if (f.archivo && f.archivo !== 'archivo_defecto.pdf') {
+                  <button mat-icon-button color="primary" (click)="descargar(f.archivo)" matTooltip="Descargar Documento">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                }
               </div>
             </mat-list-item>
           }
         </mat-list>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <section>
+        <h4><mat-icon>translate</mat-icon> Idiomas Originarios</h4>
+        <mat-list>
+          @for (i of data.idiomasOriginarios; track $index) {
+            <mat-list-item>
+              <span matListItemTitle>{{ i.idioma === 'Otro' ? i.otroIdioma : i.idioma }}</span>
+              <span matListItemLine>{{ i.institucion }} ({{ i.fecha }})</span>
+            </mat-list-item>
+          } @empty {
+            <p style="padding-left: 16px; color: #666;">No registrado</p>
+          }
+        </mat-list>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <section>
+        <h4><mat-icon>how_to_vote</mat-icon> Participación Electoral</h4>
+        <div class="docs-chips" style="padding-left: 16px;">
+          <mat-chip-set>
+            @for (p of data.participacionElectoral; track p) {
+              <mat-chip>{{ p }}</mat-chip>
+            } @empty {
+              <span style="color: #666;">Ninguna registrada</span>
+            }
+          </mat-chip-set>
+        </div>
       </section>
 
       <mat-divider></mat-divider>
@@ -72,9 +105,11 @@ import { Postulante } from '../../../../core/models';
               <span matListItemTitle>{{ e.cargo }} - {{ e.institucion }}</span>
               <span matListItemLine>{{ e.area }} | {{ e.tiempoTrabajado }} ({{ e.fechaInicio }} a {{ e.fechaFin }})</span>
               <div matListItemMeta>
-                <button mat-icon-button color="primary" (click)="descargar(e.archivo)" matTooltip="Descargar Documento">
-                  <mat-icon>download</mat-icon>
-                </button>
+                @if (e.archivo && e.archivo !== 'archivo_defecto.pdf') {
+                  <button mat-icon-button color="primary" (click)="descargar(e.archivo)" matTooltip="Descargar Documento">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                }
               </div>
             </mat-list-item>
           }
@@ -86,13 +121,17 @@ import { Postulante } from '../../../../core/models';
       <section>
         <h4><mat-icon>description</mat-icon> Documentación Adicional</h4>
         <div class="docs-chips">
-          <button mat-stroked-button color="primary" (click)="descargar(data.documentoIdentidad)">
-            <mat-icon>download</mat-icon> CI Escaneado
-          </button>
-          <button mat-stroked-button color="primary" (click)="descargar(data.certificadoLenguaOriginaria)">
-            <mat-icon>download</mat-icon> Cert. Lengua Originaria
-          </button>
-          @if (data.archivo) {
+          @if (data.documentoIdentidad && data.documentoIdentidad !== 'documento_defecto.pdf') {
+            <button mat-stroked-button color="primary" (click)="descargar(data.documentoIdentidad)">
+              <mat-icon>download</mat-icon> CI Escaneado
+            </button>
+          }
+          @if (data.certificadoLenguaOriginaria && data.certificadoLenguaOriginaria !== 'certificado_defecto.pdf') {
+            <button mat-stroked-button color="primary" (click)="descargar(data.certificadoLenguaOriginaria)">
+              <mat-icon>download</mat-icon> Cert. Lengua Originaria
+            </button>
+          }
+          @if (data.archivo && data.archivo !== 'archivo_defecto.pdf') {
             <button mat-stroked-button color="primary" (click)="descargar(data.archivo)">
               <mat-icon>download</mat-icon> Libreta Militar
             </button>

@@ -8,6 +8,7 @@ export interface User {
 export interface Postulante {
   id: string;
   carnet: string;
+  expedido: string; // Nuevo campo
   foto: string;
   nombres: string;
   apellidoPaterno: string;
@@ -28,6 +29,15 @@ export interface Postulante {
   experienciasLaborales: ExperienciaLaboral[];
   funcionesPostular: string[];
   puestoId: string; // Linked RequisitoPuesto
+  idiomasOriginarios?: IdiomaOriginario[]; // Nuevo campo
+  participacionElectoral?: string[]; // Nuevo campo
+}
+
+export interface IdiomaOriginario {
+  idioma: 'Quechua' | 'Aymara' | 'Guaraní' | 'Mojeño' | 'Chiquitano' | 'Otro';
+  otroIdioma?: string;
+  institucion: string;
+  fecha: string;
 }
 
 export interface Certificado {
@@ -35,14 +45,17 @@ export interface Certificado {
   descripcion: string;
   fecha: string;
   archivo: string;
+  areaCapacitacion?: string; // Nuevo campo
+  institucion?: string; // Nuevo campo
 }
 
 export interface FormacionAcademica {
-  grado: 'Bachiller' | 'Técnico Básico' | 'Técnico Medio' | 'Técnico Superior' | 'Licenciatura' | 'Diplomado' | 'Otro';
+  grado: 'Bachiller' | 'Técnico Básico' | 'Técnico Medio' | 'Técnico Superior' | 'Técnico' | 'Licenciatura' | 'Especialidad' | 'Maestría' | 'Doctorado' | 'Diplomado' | 'Otro';
   institucion: string;
   tituloObtenido: string;
   fecha: string;
   archivo: string;
+  profesion?: string; // Nuevo campo
 }
 
 export interface ExperienciaLaboral {

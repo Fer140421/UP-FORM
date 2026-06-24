@@ -16,11 +16,22 @@
             <p>Información básica de contacto y perfil.</p>
           </div>
           <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Carnet de Identidad</mat-label>
-              <input matInput formControlName="carnet" required>
-              <mat-icon matSuffix>badge</mat-icon>
-            </mat-form-field>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; grid-column: span 2;">
+              <mat-form-field appearance="outline" style="width: 100%;">
+                <mat-label>Carnet de Identidad</mat-label>
+                <input matInput formControlName="carnet" required>
+                <mat-icon matSuffix>badge</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" style="width: 100%;">
+                <mat-label>Expedido</mat-label>
+                <mat-select formControlName="expedido" required>
+                  @for (depto of departamentos; track depto) {
+                    <mat-option [value]="depto">{{ depto }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
 
             <div class="photo-upload-container">
               <label class="input-label">Fotografía Personal *</label>
@@ -110,7 +121,8 @@
       </form>
     </mat-step>
 
-    <!-- Paso 2: Documento de Identidad -->
+    <!-- Paso 2: Documento de Identidad (Ocultado visualmente) -->
+    <!--
     <mat-step [stepControl]="identityDocForm">
       <form [formGroup]="identityDocForm">
         <ng-template matStepLabel><mat-icon>assignment_ind</mat-icon></ng-template>
@@ -146,15 +158,20 @@
         </div>
       </form>
     </mat-step>
+    -->
 
     <!-- Paso 3: Certificado Lengua Originaria -->
     <mat-step [stepControl]="nativeLanguageForm">
       <form [formGroup]="nativeLanguageForm">
         <ng-template matStepLabel><mat-icon>translate</mat-icon></ng-template>
-        <div class="step-content centered-content">
+        <div class="step-content">
           <div class="step-title-container">
-            <h3>3. Lengua Originaria</h3>
+            <h3>3. Idioma Originario</h3>
+            <p>Registre sus conocimientos de lenguas originarias.</p>
           </div>
+
+          <!-- Lógica de carga de archivos comentada únicamente -->
+          <!--
           <div class="upload-illustration">
             <mat-icon>translate</mat-icon>
             <h3>Certificado de Lengua Originaria</h3>
@@ -174,6 +191,67 @@
               {{ nativeLanguageForm.get('certificadoLenguaOriginaria')?.value ? 'Cambiar certificado' : 'Subir PDF' }}
             </button>
           </div>
+          -->
+
+          <!-- Nueva Estructura: Agregar múltiples registros de idioma originario -->
+          <div class="section-header-inline" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h4>Idiomas Originarios Registrados</h4>
+            <button mat-stroked-button color="primary" type="button" (click)="addIdiomaOriginario()">
+              <mat-icon>add</mat-icon> Agregar Idioma
+            </button>
+          </div>
+
+          <div [formGroup]="nativeLanguageForm" class="dynamic-items-list">
+            <div formArrayName="idiomasOriginarios">
+              @for (langItem of idiomasOriginarios.controls; track $index) {
+                <mat-card class="dynamic-item-card" [formGroupName]="$index" style="margin-bottom: 16px; padding: 16px;">
+                  <div class="item-card-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 16px; align-items: center;">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Idioma Originario</mat-label>
+                      <mat-select formControlName="idioma" required>
+                        <mat-option value="Quechua">Quechua</mat-option>
+                        <mat-option value="Aymara">Aymara</mat-option>
+                        <mat-option value="Guaraní">Guaraní</mat-option>
+                        <mat-option value="Mojeño">Mojeño</mat-option>
+                        <mat-option value="Chiquitano">Chiquitano</mat-option>
+                        <mat-option value="Otro">Otro</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    @if (langItem.get('idioma')?.value === 'Otro') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Otro idioma</mat-label>
+                        <input matInput formControlName="otroIdioma" required>
+                      </mat-form-field>
+                    } @else {
+                      <div style="display: none;"></div>
+                    }
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Institución</mat-label>
+                      <input matInput formControlName="institucion" required>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Fecha</mat-label>
+                      <input matInput [matDatepicker]="langDatePicker" formControlName="fecha" required>
+                      <mat-datepicker-toggle matIconSuffix [for]="langDatePicker"></mat-datepicker-toggle>
+                      <mat-datepicker #langDatePicker></mat-datepicker>
+                    </mat-form-field>
+
+                    <button mat-icon-button color="warn" type="button" (click)="removeIdiomaOriginario($index)" matTooltip="Eliminar">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </mat-card>
+              } @empty {
+                <div class="empty-state-card" style="text-align: center; padding: 24px; border: 1px dashed #ccc; border-radius: 8px; margin-bottom: 16px;">
+                  <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #999;">translate</mat-icon>
+                  <p style="color: #666; margin-top: 8px;">Aún no ha registrado idiomas originarios.</p>
+                </div>
+              }
+            </div>
+          </div>
         </div>
 
         <div class="step-actions">
@@ -183,14 +261,14 @@
       </form>
     </mat-step>
 
-    <!-- Paso 4: Certificados -->
+    <!-- Paso 4: Capacitaciones (Otros Certificados) -->
     <mat-step [stepControl]="certificatesForm">
       <ng-template matStepLabel><mat-icon>card_membership</mat-icon></ng-template>
       <div class="step-content">
         <div class="step-title-container section-header-inline">
-          <h3>4. Otros Certificados</h3>
+          <h3>4. Capacitaciones</h3>
           <button mat-stroked-button color="primary" (click)="addCertificado()">
-            <mat-icon>add</mat-icon> Agregar Certificado
+            <mat-icon>add</mat-icon> Agregar Capacitación
           </button>
         </div>
 
@@ -199,6 +277,8 @@
             @for (cert of certificados.controls; track $index) {
               <mat-card class="dynamic-item-card" [formGroupName]="$index">
                 <div class="item-card-grid">
+                  <!-- Campos originales comentados para cumplir con la instrucción de no borrar -->
+                  <!--
                   <mat-form-field appearance="outline">
                     <mat-label>Nombre del Certificado</mat-label>
                     <input matInput formControlName="nombre" required>
@@ -208,6 +288,22 @@
                     <mat-label>Descripción</mat-label>
                     <input matInput formControlName="descripcion" required>
                   </mat-form-field>
+                  -->
+
+                  <!-- Nuevos Campos Modificados -->
+                  <mat-form-field appearance="outline">
+                    <mat-label>Área de Capacitación</mat-label>
+                    <mat-select formControlName="areaCapacitacion" required>
+                      @for (prof of profesionales(); track prof.id) {
+                        <mat-option [value]="prof.name">{{ prof.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Institución</mat-label>
+                    <input matInput formControlName="institucion" required>
+                  </mat-form-field>
 
                   <mat-form-field appearance="outline">
                     <mat-label>Fecha</mat-label>
@@ -216,6 +312,8 @@
                     <mat-datepicker #certPicker></mat-datepicker>
                   </mat-form-field>
 
+                  <!-- Carga de archivos comentada -->
+                  <!--
                   <div class="file-input-compact">
                     <input type="file" #certInput hidden (change)="onFileChange($event, 'archivo', certificados, $index)" accept="application/pdf">
                     
@@ -224,6 +322,7 @@
                       {{ cert.get('archivo')?.value ? 'PDF cargado' : 'Subir PDF' }}
                     </button>
                   </div>
+                  -->
 
                   <button mat-icon-button color="warn" (click)="removeCertificado($index)" matTooltip="Eliminar">
                     <mat-icon>delete_outline</mat-icon>
@@ -233,7 +332,7 @@
             } @empty {
               <div class="empty-state-card">
                 <mat-icon>card_membership</mat-icon>
-                <p>Aún no ha agregado certificados adicionales.</p>
+                <p>Aún no ha agregado capacitaciones.</p>
               </div>
             }
           </div>
@@ -245,7 +344,8 @@
       </div>
     </mat-step>
 
-    <!-- Paso 5: Puesto a postular -->
+    <!-- Paso 5: Puesto a postular (Ocultado visualmente) -->
+    <!--
     <mat-step [stepControl]="funcionesForm">
       <form [formGroup]="funcionesForm">
         <ng-template matStepLabel><mat-icon>work_outline</mat-icon></ng-template>
@@ -286,6 +386,7 @@
         </div>
       </form>
     </mat-step>
+    -->
 
     <!-- Paso 6: Formación Académica -->
     <mat-step [stepControl]="educationForm">
@@ -310,7 +411,11 @@
                       <mat-option value="Técnico Básico">Técnico Básico</mat-option>
                       <mat-option value="Técnico Medio">Técnico Medio</mat-option>
                       <mat-option value="Técnico Superior">Técnico Superior</mat-option>
+                      <mat-option value="Técnico">Técnico</mat-option>
                       <mat-option value="Licenciatura">Licenciatura</mat-option>
+                      <mat-option value="Especialidad">Especialidad</mat-option>
+                      <mat-option value="Maestría">Maestría</mat-option>
+                      <mat-option value="Doctorado">Doctorado</mat-option>
                       <mat-option value="Diplomado">Diplomado</mat-option>
                       <mat-option value="Otro">Otro</mat-option>
                     </mat-select>
@@ -321,11 +426,18 @@
                     <input matInput formControlName="institucion" required>
                   </mat-form-field>
 
+                  <!-- Título Obtenido: Modificado a Input de texto libre -->
                   <mat-form-field appearance="outline">
                     <mat-label>Título Obtenido</mat-label>
-                    <mat-select formControlName="tituloObtenido" required>
+                    <input matInput formControlName="tituloObtenido" required placeholder="Ej. Licenciado en Administración">
+                  </mat-form-field>
+
+                  <!-- Nuevo Campo Profesión (Select del Catálogo) -->
+                  <mat-form-field appearance="outline">
+                    <mat-label>Profesión</mat-label>
+                    <mat-select formControlName="profesion" required>
                       @for (prof of profesionales(); track prof.id) {
-                      <mat-option [value]="prof.name">{{prof.name}}</mat-option>
+                        <mat-option [value]="prof.name">{{ prof.name }}</mat-option>
                       }
                     </mat-select>
                   </mat-form-field>
@@ -337,6 +449,8 @@
                     <mat-datepicker #formPicker></mat-datepicker>
                   </mat-form-field>
 
+                  <!-- Sección de carga de archivos comentada únicamente -->
+                  <!--
                   <div class="file-input-compact">
                     <input type="file" #eduInput hidden (change)="onFileChange($event, 'archivo', formaciones, $index)" accept="application/pdf">
                     
@@ -345,6 +459,7 @@
                       {{ form.get('archivo')?.value ? 'PDF cargado' : 'Subir PDF' }}
                     </button>
                   </div>
+                  -->
 
                   <button mat-icon-button color="warn" (click)="removeFormacion($index)" matTooltip="Eliminar">
                     <mat-icon>delete_outline</mat-icon>
@@ -354,7 +469,7 @@
             } @empty {
               <div class="empty-state-card">
                 <mat-icon>school</mat-icon>
-                <p>Registre sus títulos y grados académicos (Debe adjuntar PDF).</p>
+                <p>Registre sus títulos y grados académicos.</p>
               </div>
             }
           </div>
@@ -416,6 +531,8 @@
                     </mat-form-field>
                   </div>
                   <div class="item-actions" style="display: flex; gap: 16px; align-items: center;">
+                    <!-- Sección de documentos comentada únicamente -->
+                    <!--
                     <div class="file-input-compact" style="flex: 1;">
                       <input type="file" #expInput hidden (change)="onFileChange($event, 'archivo', experiencias, $index)" accept="application/pdf">
                       <button mat-stroked-button type="button" (click)="expInput.click()" [class.has-file]="exp.get('archivo')?.value" style="width: 100%;">
@@ -423,6 +540,7 @@
                         {{ exp.get('archivo')?.value ? 'Certificado laboral cargado' : 'Subir Certificado de Trabajo (PDF)' }}
                       </button>
                     </div>
+                    -->
                     <button mat-button color="warn" (click)="removeExperiencia($index)">
                       <mat-icon>delete</mat-icon> Eliminar registro
                     </button>
@@ -432,10 +550,16 @@
             } @empty {
               <div class="empty-state-card">
                 <mat-icon>work_history</mat-icon>
-                <p>Aún no ha registrado experiencias laborales (Debe adjuntar certificados).</p>
+                <p>Aún no ha registrado experiencias laborales.</p>
               </div>
             }
           </div>
+        </div>
+
+        <!-- Tiempo Total de Servicio calculado automáticamente en tiempo real -->
+        <div class="total-experience-summary" style="margin-top: 20px; padding: 15px; border-radius: 8px; background: #e3f2fd; border-left: 5px solid #1976d2; display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 500; color: #0d47a1;">
+          <mat-icon style="color: #1976d2;">alarm</mat-icon>
+          <span>Tiempo Total de Servicio: <strong>{{ totalTiempoServicio() }}</strong></span>
         </div>
       </div>
       <div class="step-actions">
@@ -444,48 +568,82 @@
       </div>
     </mat-step>
 
-    <!-- Paso 8: Libreta de Servicio Militar -->
-    <mat-step [stepControl]="militaryServiceForm">
-      <form [formGroup]="militaryServiceForm">
-        <ng-template matStepLabel><mat-icon>military_tech</mat-icon></ng-template>
-        
-        <div class="step-content centered-content">
-          <div class="step-title-container">
-            <h3>8. Situación Militar</h3>
-          </div>
-          <div class="upload-illustration">
-            <mat-icon>military_tech</mat-icon>
-            <h3>Libreta Militar</h3>
-            <p>Indique si cuenta con libreta de servicio militar y adjunte el documento si corresponde.</p>
-          </div>
-
-          <div class="military-selection">
-            <mat-radio-group formControlName="poseeLibreta" class="modern-radio-group">
-              <mat-radio-button value="Si">Sí, poseo libreta militar</mat-radio-button>
-              <mat-radio-button value="No">No poseo libreta militar</mat-radio-button>
-            </mat-radio-group>
-          </div>
-
-          @if (militaryServiceForm.get('poseeLibreta')?.value === 'Si') {
-            <div class="file-drop-zone large animate-fade-in" [class.has-file]="militaryServiceForm.get('archivo')?.value">
-              <input type="file" #milInput hidden (change)="onFileChange($event, 'archivo', militaryServiceForm)" accept="application/pdf">
-              
-              <div class="upload-info">
-                <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
-                <span>{{ militaryServiceForm.get('archivo')?.value ? 'Libreta adjunta correctamente' : 'No se ha seleccionado archivo' }}</span>
-              </div>
-
-              <button mat-flat-button color="primary" type="button" (click)="milInput.click()">
-                <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'sync' : 'upload_file' }}</mat-icon>
-                {{ militaryServiceForm.get('archivo')?.value ? 'Cambiar archivo' : 'Subir PDF de Libreta' }}
-              </button>
+    <!-- Paso 8: Servicio Militar (Condicional al género masculino) -->
+    @if (personalDataForm.get('genero')?.value === 'Masculino') {
+      <mat-step [stepControl]="militaryServiceForm">
+        <form [formGroup]="militaryServiceForm">
+          <ng-template matStepLabel><mat-icon>military_tech</mat-icon></ng-template>
+          
+          <div class="step-content centered-content">
+            <div class="step-title-container">
+              <h3>8. Servicio Militar</h3>
             </div>
-          }
-        </div>
+            <div class="upload-illustration">
+              <mat-icon>military_tech</mat-icon>
+              <h3>Libreta Militar</h3>
+              <p>Indique si cuenta con libreta de servicio militar y adjunte el documento si corresponde.</p>
+            </div>
 
+            <div class="military-selection">
+              <mat-radio-group formControlName="poseeLibreta" class="modern-radio-group">
+                <mat-radio-button value="Si">Sí, poseo libreta militar</mat-radio-button>
+                <mat-radio-button value="No">No poseo libreta militar</mat-radio-button>
+              </mat-radio-group>
+            </div>
+
+            @if (militaryServiceForm.get('poseeLibreta')?.value === 'Si') {
+              <div class="file-drop-zone large animate-fade-in" [class.has-file]="militaryServiceForm.get('archivo')?.value">
+                <input type="file" #milInput hidden (change)="onFileChange($event, 'archivo', militaryServiceForm)" accept="application/pdf">
+                
+                <div class="upload-info">
+                  <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
+                  <span>{{ militaryServiceForm.get('archivo')?.value ? 'Libreta adjunta correctamente' : 'No se ha seleccionado archivo' }}</span>
+                </div>
+
+                <button mat-flat-button color="primary" type="button" (click)="milInput.click()">
+                  <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'sync' : 'upload_file' }}</mat-icon>
+                  {{ militaryServiceForm.get('archivo')?.value ? 'Cambiar archivo' : 'Subir PDF de Libreta' }}
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Atrás</button>
+            <button mat-flat-button color="primary" matStepperNext [disabled]="militaryServiceForm.invalid">Continuar</button>
+          </div>
+        </form>
+      </mat-step>
+    }
+
+    <!-- Nuevo Paso: Participación Electoral -->
+    <mat-step [stepControl]="electoralForm">
+      <form [formGroup]="electoralForm">
+        <ng-template matStepLabel><mat-icon>how_to_vote</mat-icon></ng-template>
+        <div class="step-content">
+          <div class="step-title-container">
+            <h3>Participación Electoral</h3>
+            <p>Seleccione los procesos electorales en los que ha participado.</p>
+          </div>
+          
+          <div class="electoral-options" style="display: flex; flex-direction: column; gap: 16px; margin: 24px 0;">
+            <mat-checkbox [checked]="isElectoralSelected('Primera vuelta elecciones nacionales')"
+                          (change)="toggleElectoralSelection('Primera vuelta elecciones nacionales')">
+              Primera vuelta elecciones nacionales
+            </mat-checkbox>
+            <mat-checkbox [checked]="isElectoralSelected('Segunda vuelta elecciones nacionales')"
+                          (change)="toggleElectoralSelection('Segunda vuelta elecciones nacionales')">
+              Segunda vuelta elecciones nacionales
+            </mat-checkbox>
+            <mat-checkbox [checked]="isElectoralSelected('Elecciones subnacionales')"
+                          (change)="toggleElectoralSelection('Elecciones subnacionales')">
+              Elecciones subnacionales
+            </mat-checkbox>
+          </div>
+        </div>
         <div class="step-actions">
           <button mat-button matStepperPrevious>Atrás</button>
-          <button mat-flat-button color="primary" matStepperNext [disabled]="militaryServiceForm.invalid">Continuar</button>
+          <button mat-flat-button color="primary" matStepperNext>Continuar</button>
         </div>
       </form>
     </mat-step>
@@ -504,6 +662,23 @@
             <p>Revise el resumen de su información antes de confirmar.</p>
           </div>
 
+          <!-- Nueva sección: Fotografía del postulante y campos requeridos -->
+          <div class="summary-details-card" style="display: flex; gap: 24px; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 24px; background: #fafafa; flex-wrap: wrap;">
+            <div class="summary-photo" style="flex: 0 0 120px; height: 120px;">
+              <img [src]="getFotoPreviewUrl()" alt="Fotografía del postulante" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover; border: 2px solid #ccc;">
+            </div>
+            <div class="summary-info" style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 250px;">
+              <div style="font-size: 1.25rem; font-weight: 600; color: #1976d2;">
+                {{ personalDataForm.get('nombres')?.value }} {{ personalDataForm.get('apellidoPaterno')?.value }} {{ personalDataForm.get('apellidoMaterno')?.value }}
+              </div>
+              <div><strong>Carnet de Identidad:</strong> {{ personalDataForm.get('carnet')?.value }} (Expedido en: {{ personalDataForm.get('expedido')?.value || 'No seleccionado' }})</div>
+              <div><strong>Profesión(es):</strong> {{ getProfesorProfesiones() }}</div>
+              <div><strong>Participación Electoral:</strong> {{ getParticipacionElectoralResumen() }}</div>
+              <div><strong>Contacto:</strong> {{ personalDataForm.get('celular')?.value }} | {{ personalDataForm.get('correo')?.value || 'N/A' }}</div>
+              <div><strong>Puesto a postular:</strong> {{ getSelectedPuestoName() }}</div>
+            </div>
+          </div>
+
           <div class="summary-grid">
             <div class="summary-section">
               <h4>Información Personal</h4>
@@ -513,7 +688,7 @@
               </div>
               <div class="summary-row">
                 <span class="label">Carnet:</span>
-                <span class="value">{{ personalDataForm.get('carnet')?.value }}</span>
+                <span class="value">{{ personalDataForm.get('carnet')?.value }} ({{ personalDataForm.get('expedido')?.value }})</span>
               </div>
               <div class="summary-row">
                 <span class="label">Contacto:</span>
@@ -525,6 +700,8 @@
               </div>
             </div>
 
+            <!-- Listado de documentos comentados visualmente únicamente -->
+            <!--
             <div class="summary-section">
               <h4>Documentación</h4>
               <div class="status-list">
@@ -542,6 +719,7 @@
                 </div>
               </div>
             </div>
+            -->
           </div>
         </div>
       </div>

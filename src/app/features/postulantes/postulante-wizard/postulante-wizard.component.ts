@@ -72,6 +72,43 @@ export class PostulanteWizardComponent {
   loading = signal(false);
   editId = signal<string | null>(null);
   profesionales = signal<Profesional[]>([]);
+  experienciasValue = signal<any[]>([]);
+
+  totalTiempoServicio = computed(() => {
+    const list = this.experienciasValue();
+    let totalMonths = 0;
+    
+    list.forEach(exp => {
+      const start = exp.fechaInicio as DateTime | null;
+      const end = exp.fechaFin as DateTime | null;
+      
+      if (start && end && (start as any)?.isValid && (end as any)?.isValid) {
+        const diff = end.diff(start, ['years', 'months']).toObject();
+        const months = (diff.years || 0) * 12 + (diff.months || 0);
+        if (months > 0) {
+          totalMonths += months;
+        }
+      }
+    });
+    
+    if (totalMonths === 0) {
+      return '0 meses';
+    }
+    
+    const years = Math.floor(totalMonths / 12);
+    const remainingMonths = Math.round(totalMonths % 12);
+    
+    let result = '';
+    if (years > 0) {
+      result += `${years} ${years === 1 ? 'año' : 'años'}`;
+    }
+    if (remainingMonths > 0) {
+      if (result) result += ' y ';
+      result += `${remainingMonths} ${remainingMonths === 1 ? 'mes' : 'meses'}`;
+    }
+    
+    return result || '0 meses';
+  });
 
   // Map to store files to upload later
   private filesToUpload: Map<string, File> = new Map();
@@ -90,6 +127,7 @@ export class PostulanteWizardComponent {
 
   personalDataForm = this.fb.group({
     carnet: ['', Validators.required],
+    expedido: ['', Validators.required], // Nuevo campo
     foto: ['', Validators.required],
     nombres: ['', Validators.required],
     apellidoPaterno: ['', Validators.required],
@@ -104,11 +142,12 @@ export class PostulanteWizardComponent {
   });
 
   identityDocForm = this.fb.group({
-    documentoIdentidad: ['', Validators.required]
+    documentoIdentidad: ['documento_defecto.pdf', Validators.required] // Por defecto para evitar invalidez si se oculta
   });
 
   nativeLanguageForm = this.fb.group({
-    certificadoLenguaOriginaria: ['', Validators.required]
+    certificadoLenguaOriginaria: ['certificado_defecto.pdf', Validators.required], // Por defecto
+    idiomasOriginarios: this.fb.array([]) // Nuevo FormArray
   });
 
   certificatesForm = this.fb.group({
@@ -132,6 +171,10 @@ export class PostulanteWizardComponent {
     archivo: ['']
   });
 
+  electoralForm = this.fb.group({
+    participacionElectoral: [[] as string[]] // Nuevo FormGroup para participación electoral
+  });
+
   puestosDisponibles = signal<(RequisitoPuesto & { institucionNombre: string })[]>([]);
   searchTerm = signal('');
 
@@ -147,6 +190,14 @@ export class PostulanteWizardComponent {
     this.loadPuestos();
     this.loadProfesionales();
     this.checkEditMode();
+
+    this.personalDataForm.get('genero')?.valueChanges.subscribe(() => {
+      this.onGenderChange();
+    });
+
+    this.experienceForm.valueChanges.subscribe(() => {
+      this.experienciasValue.set(this.experiencias.value);
+    });
   }
 
   loadProfesionales() {
@@ -180,10 +231,17 @@ export class PostulanteWizardComponent {
       fechaNacimiento: data.fechaNacimiento ? DateTime.fromISO(data.fechaNacimiento) : null
     } as any);
 
-    this.identityDocForm.patchValue({ documentoIdentidad: data.documentoIdentidad });
-    this.nativeLanguageForm.patchValue({ certificadoLenguaOriginaria: data.certificadoLenguaOriginaria });
+    this.identityDocForm.patchValue({ documentoIdentidad: data.documentoIdentidad || 'documento_defecto.pdf' });
+    this.nativeLanguageForm.patchValue({ certificadoLenguaOriginaria: data.certificadoLenguaOriginaria || 'certificado_defecto.pdf' });
     this.funcionesForm.patchValue({ puestoId: data.puestoId });
     this.militaryServiceForm.patchValue({ poseeLibreta: data.poseeLibreta, archivo: data.archivo });
+    this.electoralForm.patchValue({ participacionElectoral: data.participacionElectoral || [] });
+
+    // Clear arrays first
+    while (this.certificados.length !== 0) this.certificados.removeAt(0);
+    while (this.formaciones.length !== 0) this.formaciones.removeAt(0);
+    while (this.experiencias.length !== 0) this.experiencias.removeAt(0);
+    while (this.idiomasOriginarios.length !== 0) this.idiomasOriginarios.removeAt(0);
 
     // Patch arrays
     data.certificados?.forEach(c => {
@@ -191,7 +249,15 @@ export class PostulanteWizardComponent {
         nombre: [c.nombre, Validators.required],
         descripcion: [c.descripcion, Validators.required],
         fecha: [c.fecha ? DateTime.fromISO(c.fecha) : null, Validators.required],
-        archivo: [c.archivo, Validators.required]
+        archivo: [c.archivo || 'archivo_defecto.pdf', Validators.required],
+        areaCapacitacion: [c.areaCapacitacion || c.nombre || '', Validators.required],
+        institucion: [c.institucion || c.descripcion || '', Validators.required]
+      });
+      group.get('areaCapacitacion')?.valueChanges.subscribe(val => {
+        group.get('nombre')?.setValue(val || '', { emitEvent: false });
+      });
+      group.get('institucion')?.valueChanges.subscribe(val => {
+        group.get('descripcion')?.setValue(val || '', { emitEvent: false });
       });
       this.certificados.push(group);
     });
@@ -202,7 +268,8 @@ export class PostulanteWizardComponent {
         institucion: [f.institucion, Validators.required],
         tituloObtenido: [f.tituloObtenido, Validators.required],
         fecha: [f.fecha ? DateTime.fromISO(f.fecha) : null, Validators.required],
-        archivo: [f.archivo, Validators.required]
+        archivo: [f.archivo || 'archivo_defecto.pdf', Validators.required],
+        profesion: [f.profesion || '', Validators.required]
       });
       this.formaciones.push(group);
     });
@@ -215,10 +282,40 @@ export class PostulanteWizardComponent {
         fechaInicio: [e.fechaInicio ? DateTime.fromISO(e.fechaInicio) : null, Validators.required],
         fechaFin: [e.fechaFin ? DateTime.fromISO(e.fechaFin) : null, Validators.required],
         tiempoTrabajado: [e.tiempoTrabajado],
-        archivo: [e.archivo, Validators.required]
+        archivo: [e.archivo || 'archivo_defecto.pdf', Validators.required]
       });
+
+      group.get('fechaInicio')?.valueChanges.subscribe(() => this.calculateTime(group));
+      group.get('fechaFin')?.valueChanges.subscribe(() => this.calculateTime(group));
+
       this.experiencias.push(group);
     });
+
+    data.idiomasOriginarios?.forEach(i => {
+      const group = this.fb.group({
+        idioma: [i.idioma, Validators.required],
+        otroIdioma: [i.otroIdioma || ''],
+        institucion: [i.institucion, Validators.required],
+        fecha: [i.fecha ? DateTime.fromISO(i.fecha) : null, Validators.required]
+      });
+      if (i.idioma === 'Otro') {
+        group.get('otroIdioma')?.setValidators(Validators.required);
+      }
+      group.get('idioma')?.valueChanges.subscribe(val => {
+        const otroCtrl = group.get('otroIdioma');
+        if (val === 'Otro') {
+          otroCtrl?.setValidators(Validators.required);
+        } else {
+          otroCtrl?.clearValidators();
+          otroCtrl?.setValue('');
+        }
+        otroCtrl?.updateValueAndValidity();
+      });
+      this.idiomasOriginarios.push(group);
+    });
+
+    this.onGenderChange();
+    this.experienciasValue.set(this.experiencias.value);
   }
 
   loadPuestos() {
@@ -232,6 +329,15 @@ export class PostulanteWizardComponent {
         institucionNombre: insts.find(i => i.id === r.institucionId)?.nombre || 'Desconocida'
       }));
       this.puestosDisponibles.set(mapped);
+
+      // Select first active puesto automatically for new postulant since step 5 is hidden
+      if (!this.editId() && !this.funcionesForm.get('puestoId')?.value) {
+        if (activeReqs.length > 0) {
+          this.funcionesForm.get('puestoId')?.setValue(activeReqs[0].id);
+        } else {
+          this.funcionesForm.get('puestoId')?.setValue('puesto_defecto');
+        }
+      }
     });
   }
 
@@ -248,13 +354,25 @@ export class PostulanteWizardComponent {
     return this.experienceForm.get('experienciasLaborales') as FormArray;
   }
 
+  get idiomasOriginarios() {
+    return this.nativeLanguageForm.get('idiomasOriginarios') as FormArray;
+  }
+
   // Dynamic Item Methods
   addCertificado() {
     const group = this.fb.group({
       nombre: ['', Validators.required],
       descripcion: ['', Validators.required],
       fecha: [null as DateTime | null, Validators.required],
-      archivo: ['', Validators.required]
+      archivo: ['archivo_defecto.pdf', Validators.required],
+      areaCapacitacion: ['', Validators.required],
+      institucion: ['', Validators.required]
+    });
+    group.get('areaCapacitacion')?.valueChanges.subscribe(val => {
+      group.get('nombre')?.setValue(val || '', { emitEvent: false });
+    });
+    group.get('institucion')?.valueChanges.subscribe(val => {
+      group.get('descripcion')?.setValue(val || '', { emitEvent: false });
     });
     this.certificados.push(group);
   }
@@ -271,7 +389,8 @@ export class PostulanteWizardComponent {
       institucion: ['', Validators.required],
       tituloObtenido: ['', Validators.required],
       fecha: [null as DateTime | null, Validators.required],
-      archivo: ['', Validators.required]
+      archivo: ['archivo_defecto.pdf', Validators.required],
+      profesion: ['', Validators.required]
     });
     this.formaciones.push(group);
   }
@@ -290,7 +409,7 @@ export class PostulanteWizardComponent {
       fechaInicio: [null as DateTime | null, Validators.required],
       fechaFin: [null as DateTime | null, Validators.required],
       tiempoTrabajado: [''],
-      archivo: ['', Validators.required]
+      archivo: ['archivo_defecto.pdf', Validators.required]
     });
 
     // Watch for date changes to calculate time
@@ -298,19 +417,45 @@ export class PostulanteWizardComponent {
     group.get('fechaFin')?.valueChanges.subscribe(() => this.calculateTime(group));
 
     this.experiencias.push(group);
+    this.experienciasValue.set(this.experiencias.value);
   }
 
   removeExperiencia(index: number) {
     const key = `experiencias.${index}.archivo`;
     this.filesToUpload.delete(key);
     this.experiencias.removeAt(index);
+    this.experienciasValue.set(this.experiencias.value);
+  }
+
+  addIdiomaOriginario() {
+    const group = this.fb.group({
+      idioma: ['', Validators.required],
+      otroIdioma: [''],
+      institucion: ['', Validators.required],
+      fecha: [null as DateTime | null, Validators.required]
+    });
+    group.get('idioma')?.valueChanges.subscribe(val => {
+      const otroCtrl = group.get('otroIdioma');
+      if (val === 'Otro') {
+        otroCtrl?.setValidators(Validators.required);
+      } else {
+        otroCtrl?.clearValidators();
+        otroCtrl?.setValue('');
+      }
+      otroCtrl?.updateValueAndValidity();
+    });
+    this.idiomasOriginarios.push(group);
+  }
+
+  removeIdiomaOriginario(index: number) {
+    this.idiomasOriginarios.removeAt(index);
   }
 
   private calculateTime(group: FormGroup) {
     const start = group.get('fechaInicio')?.value as DateTime;
     const end = group.get('fechaFin')?.value as DateTime;
 
-    if (start && end) {
+    if (start && end && (start as any)?.isValid && (end as any)?.isValid) {
       const diff = end.diff(start, ['years', 'months']).toObject();
       const totalMonths = (diff.years || 0) * 12 + (diff.months || 0);
       
@@ -380,10 +525,20 @@ export class PostulanteWizardComponent {
 
     if (genero === 'Masculino') {
       poseeLibreta?.setValidators(Validators.required);
+      if (poseeLibreta?.value === 'Si') {
+        archivo?.setValidators(Validators.required);
+      } else {
+        archivo?.clearValidators();
+      }
     } else {
       poseeLibreta?.clearValidators();
+      archivo?.clearValidators();
+      // Auto-populate for female applicants to pass form step control validations
+      poseeLibreta?.setValue('No', { emitEvent: false });
+      archivo?.setValue('', { emitEvent: false });
     }
-    poseeLibreta?.updateValueAndValidity();
+    poseeLibreta?.updateValueAndValidity({ emitEvent: false });
+    archivo?.updateValueAndValidity({ emitEvent: false });
   }
 
   submit() {
@@ -428,7 +583,8 @@ export class PostulanteWizardComponent {
       ...this.funcionesForm.value,
       ...this.educationForm.value,
       ...this.experienceForm.value,
-      ...this.militaryServiceForm.value
+      ...this.militaryServiceForm.value,
+      ...this.electoralForm.value
     };
 
     // Replace filenames with Cloudinary URLs
@@ -510,6 +666,11 @@ export class PostulanteWizardComponent {
       fechaFin: e.fechaFin?.toISODate ? e.fechaFin.toISODate() : e.fechaFin
     }));
 
+    formatted.idiomasOriginarios = formatted.idiomasOriginarios?.map((i: any) => ({
+      ...i,
+      fecha: i.fecha?.toISODate ? i.fecha.toISODate() : i.fecha
+    }));
+
     return formatted;
   }
 
@@ -521,5 +682,45 @@ export class PostulanteWizardComponent {
     const id = this.funcionesForm.get('puestoId')?.value;
     const puesto = this.puestosDisponibles().find(p => p.id === id);
     return puesto ? `${puesto.denominacionCargo} (${puesto.institucionNombre})` : 'No seleccionado';
+  }
+
+  isElectoralSelected(option: string): boolean {
+    const current = this.electoralForm.get('participacionElectoral')?.value || [];
+    return current.includes(option);
+  }
+
+  toggleElectoralSelection(option: string) {
+    const control = this.electoralForm.get('participacionElectoral');
+    const current = [...(control?.value || [])];
+    const index = current.indexOf(option);
+    if (index > -1) {
+      current.splice(index, 1);
+    } else {
+      current.push(option);
+    }
+    control?.setValue(current);
+    control?.updateValueAndValidity();
+  }
+
+  getFotoPreviewUrl(): string {
+    const file = this.filesToUpload.get('foto');
+    if (file) {
+      if (!(this as any)._fotoPreviewUrl || (this as any)._fotoPreviewFile !== file) {
+        (this as any)._fotoPreviewUrl = URL.createObjectURL(file);
+        (this as any)._fotoPreviewFile = file;
+      }
+      return (this as any)._fotoPreviewUrl;
+    }
+    return this.personalDataForm.get('foto')?.value || 'assets/placeholder-user.png';
+  }
+
+  getProfesorProfesiones(): string {
+    const list = this.formaciones.value || [];
+    return list.map((f: any) => f.profesion).filter(Boolean).join(', ') || 'Ninguna';
+  }
+
+  getParticipacionElectoralResumen(): string {
+    const list = this.electoralForm.get('participacionElectoral')?.value || [];
+    return list.join(', ') || 'Ninguna';
   }
 }
