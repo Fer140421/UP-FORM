@@ -116,10 +116,15 @@ export class AsignacionDetalleComponent implements OnInit {
   }
 
   asignarPuesto(requisito: RequisitoPuesto) {
+    const institucionNombre = this.institucion()?.nombre;
+
     const dialogRef = this.dialog.open(PostulanteAsignarComponent, {
       width: '90%',
       maxWidth: '1200px',
-      data: requisito
+      data: {
+        ...requisito,
+        institucionNombre
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {

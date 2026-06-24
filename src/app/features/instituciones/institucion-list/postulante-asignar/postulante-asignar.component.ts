@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialog, MatDialogRef } from '@angu
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Postulante, RequisitoPuesto } from '../../../../core/models';
@@ -13,6 +14,10 @@ import { PostulanteDetalleComponent } from '../postulante-detalle/postulante-det
 import { ConfirmDialogComponent } from '../../../dashboard/pages/home/confirm-dialog.component';
 import { finalize, take, switchMap } from 'rxjs/operators';
 
+type PostulanteAsignarData = RequisitoPuesto & {
+  institucionNombre?: string;
+};
+
 @Component({
   selector: 'app-postulante-asignar',
   standalone: true,
@@ -21,11 +26,18 @@ import { finalize, take, switchMap } from 'rxjs/operators';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
+    MatDividerModule,
     MatProgressBarModule,
     MatSnackBarModule
   ],
   template: `
-    <h2 mat-dialog-title class="dialog-title">Candidatos para: {{ data.denominacionCargo }}</h2>
+    <h2 mat-dialog-title class="dialog-title">
+      Candidatos para: {{ data.denominacionCargo }}
+      @if (data.institucionNombre) {
+        <span class="title-separator">|</span>
+        <span class="institution-title">{{ data.institucionNombre }}</span>
+      }
+    </h2>
     <mat-dialog-content>
       @if (loading()) {
         <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
@@ -76,6 +88,8 @@ import { finalize, take, switchMap } from 'rxjs/operators';
 
     <style>
       .dialog-title { color: #3f51b5; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 16px; }
+      .title-separator { color: #b0b0b0; margin: 0 8px; }
+      .institution-title { color: #666; font-weight: 600; }
       .loading-bar { margin-bottom: 20px; }
       .candidatos-grid {
         display: grid;
@@ -123,7 +137,7 @@ import { finalize, take, switchMap } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PostulanteAsignarComponent implements OnInit {
-  public data = inject<RequisitoPuesto>(MAT_DIALOG_DATA);
+  public data = inject<PostulanteAsignarData>(MAT_DIALOG_DATA);
   private postRepository = inject(PostulanteRepository);
   private asigRepository = inject(AsignacionRepository);
   private reqRepository = inject(RequisitoPuestoRepository);

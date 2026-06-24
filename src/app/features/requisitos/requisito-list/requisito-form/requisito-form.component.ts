@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
 import { RequisitoPuestoRepository } from '../../../../core/repositories/requisito-puesto.repository';
 import { ProfesionalRepository } from '../../../../core/repositories/profesional.repository';
 import { RequisitoPuesto, Institucion, Profesional } from '../../../../core/models';
@@ -26,6 +27,7 @@ import { finalize, take } from 'rxjs/operators';
     MatProgressSpinnerModule,
     MatIconModule,
     MatTooltipModule,
+    MatTableModule,
   ],
   templateUrl: './requisito-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,12 +43,18 @@ export class RequisitoFormComponent implements OnInit {
 
   loading = signal(false);
   profesionales = signal<Profesional[]>([]);
+  formacionesSeleccionadas = signal<string[]>(this.parseFormaciones(this.data.requisito?.formacion));
+  formacionColumns: string[] = ['profesion', 'acciones'];
+  profesionalesDisponibles = computed(() => {
+    const seleccionadas = new Set(this.formacionesSeleccionadas());
+    return this.profesionales().filter(prof => !seleccionadas.has(prof.name));
+  });
 
   form = this.fb.group({
     institucionId: [this.data.requisito?.institucionId || '', Validators.required],
     denominacionCargo: [this.data.requisito?.denominacionCargo || '', Validators.required],
     unidadPuesto: [this.data.requisito?.unidadPuesto || '', Validators.required],
-    formacion: [this.data.requisito?.formacion || '', Validators.required],
+    formacionAcademica: [''],
     experienciaLaboral: [
       this.data.requisito?.experienciaLaboral !== undefined && this.data.requisito?.experienciaLaboral !== null
         ? Number(this.data.requisito.experienciaLaboral)
@@ -77,7 +85,18 @@ export class RequisitoFormComponent implements OnInit {
         error: (err) => {
           console.error('Error al cargar profesionales:', err);
         }
-      });
+    });
+  }
+
+  addFormacion(profesion: string) {
+    if (!profesion || this.formacionesSeleccionadas().includes(profesion)) return;
+
+    this.formacionesSeleccionadas.update(formaciones => [...formaciones, profesion]);
+    this.form.get('formacionAcademica')?.reset('');
+  }
+
+  removeFormacion(profesion: string) {
+    this.formacionesSeleccionadas.update(formaciones => formaciones.filter(item => item !== profesion));
   }
 
   incrementLaboral() {
@@ -107,12 +126,13 @@ export class RequisitoFormComponent implements OnInit {
   }
 
   save() {
-    if (this.form.valid && !this.loading()) {
+    if (this.form.valid && this.formacionesSeleccionadas().length > 0 && !this.loading()) {
       this.loading.set(true);
-      const value = this.form.value;
+      const { formacionAcademica, ...value } = this.form.value;
       const payload: RequisitoPuesto = {
         ...this.data.requisito,
         ...value,
+        formacion: this.formacionesSeleccionadas().join(', '),
         experienciaLaboral: value.experienciaLaboral !== undefined && value.experienciaLaboral !== null
           ? String(value.experienciaLaboral)
           : '0',
@@ -127,5 +147,11 @@ export class RequisitoFormComponent implements OnInit {
 
       obs.pipe(finalize(() => this.loading.set(false))).subscribe(() => this.dialogRef.close(true));
     }
+  }
+
+  private parseFormaciones(formacion?: string): string[] {
+    return formacion
+      ? formacion.split(',').map(item => item.trim()).filter(Boolean)
+      : [];
   }
 }
