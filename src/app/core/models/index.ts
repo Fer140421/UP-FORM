@@ -7,6 +7,7 @@ export interface User {
 
 export interface Postulante {
   id: string;
+  activo?: boolean;
   carnet: string;
   expedido: string; // Nuevo campo
   foto: string;
@@ -31,6 +32,7 @@ export interface Postulante {
   puestoId: string; // Linked RequisitoPuesto
   idiomasOriginarios?: IdiomaOriginario[]; // Nuevo campo
   participacionElectoral?: string[]; // Nuevo campo
+  disponibilidadTraslado?: 'Si' | 'No';
 }
 
 export interface IdiomaOriginario {
@@ -46,6 +48,7 @@ export interface Certificado {
   fecha: string;
   archivo: string;
   areaCapacitacion?: string; // Nuevo campo
+  nombreCurso?: string;
   institucion?: string; // Nuevo campo
 }
 
@@ -70,11 +73,14 @@ export interface ExperienciaLaboral {
 
 export interface Institucion {
   id: string;
+  activo?: boolean;
   nombre: string;
+  sigla?: string;
 }
 
 export interface RequisitoPuesto {
   id: string;
+  activo?: boolean;
   institucionId: string;
   denominacionCargo: string;
   unidadPuesto: string;
@@ -87,6 +93,7 @@ export interface RequisitoPuesto {
 
 export interface Asignacion {
   id: string;
+  activo?: boolean;
   postulanteId: string;
   requisitoId: string;
   fechaAsignacion: string;
@@ -94,5 +101,6 @@ export interface Asignacion {
 
 export interface Profesional {
   id: string;
+  activo?: boolean;
   name: string;
 }

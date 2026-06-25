@@ -2,7 +2,7 @@
   <button mat-icon-button (click)="volver()" aria-label="Volver a asignaciones">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <h1 class="section-title">Cargos Requeridos: {{ institucion()?.nombre }}</h1>
+  <h1 class="section-title">Cargos Requeridos: {{ institucion()?.nombre }} {{ institucion()?.sigla ? '(' + institucion()?.sigla + ')' : '' }}</h1>
 </div>
 
 <mat-card class="table-card">

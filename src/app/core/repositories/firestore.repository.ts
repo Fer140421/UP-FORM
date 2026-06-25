@@ -14,6 +14,7 @@ import {
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BaseRepository } from './base.repository';
+import { normalizeDataForSave } from '../utils/data-normalizer';
 
 export class FirestoreRepository<T extends { id?: string }> implements BaseRepository<T> {
   protected firestore: Firestore;
@@ -50,22 +51,39 @@ export class FirestoreRepository<T extends { id?: string }> implements BaseRepos
   create(item: T): Observable<T> {
     const { id, ...data } = item;
     const ref = collection(this.firestore, this.collectionName);
-    return from(addDoc(ref, data)).pipe(
-      map((docRef) => ({ ...item, id: docRef.id }))
+    const normalizedData = normalizeDataForSave(data);
+    const dataWithState = {
+      ...normalizedData,
+      activo: (normalizedData as any).activo ?? true
+    };
+    return from(addDoc(ref, dataWithState)).pipe(
+      map((docRef) => ({ ...normalizeDataForSave(item), activo: (item as any).activo ?? true, id: docRef.id }))
     );
   }
 
   update(id: string, item: Partial<T>): Observable<T> {
     const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
     const { id: _, ...data } = item as any;
-    return from(updateDoc(docRef, data)).pipe(
-      map(() => ({ ...item, id }) as T)
+    const normalizedData = normalizeDataForSave(data);
+    return from(updateDoc(docRef, normalizedData)).pipe(
+      map(() => ({ ...normalizeDataForSave(item), id }) as T)
     );
   }
 
   delete(id: string): Observable<void> {
     const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
+    return from(updateDoc(docRef, { activo: false })).pipe(
+      map(() => undefined)
+    );
+  }
+
+  hardDelete(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `${this.collectionName}/${id}`);
     return from(deleteDoc(docRef));
+  }
+
+  activate(id: string): Observable<T> {
+    return this.update(id, { activo: true } as unknown as Partial<T>);
   }
 
   protected getQuery(): Observable<T[]> {

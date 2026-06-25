@@ -12,6 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { RequisitoPuestoRepository } from '../../../../core/repositories/requisito-puesto.repository';
 import { ProfesionalRepository } from '../../../../core/repositories/profesional.repository';
 import { RequisitoPuesto, Institucion, Profesional } from '../../../../core/models';
+import { NormalizeInputDirective } from '../../../../core/directives/normalize-input.directive';
 import { finalize, take } from 'rxjs/operators';
 
 @Component({
@@ -28,6 +29,7 @@ import { finalize, take } from 'rxjs/operators';
     MatIconModule,
     MatTooltipModule,
     MatTableModule,
+    NormalizeInputDirective,
   ],
   templateUrl: './requisito-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,7 +82,7 @@ export class RequisitoFormComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: (list) => {
-          this.profesionales.set(list);
+          this.profesionales.set(list.filter(prof => prof.activo !== false));
         },
         error: (err) => {
           console.error('Error al cargar profesionales:', err);

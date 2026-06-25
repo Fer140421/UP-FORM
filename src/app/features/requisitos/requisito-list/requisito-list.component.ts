@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RequisitoPuestoRepository } from '../../../core/repositories/requisito-puesto.repository';
@@ -35,6 +36,7 @@ import { finalize, take } from 'rxjs/operators';
     MatProgressBarModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatPaginatorModule,
     MatSortModule
   ],
@@ -51,14 +53,37 @@ export class RequisitoListComponent implements OnInit {
   instituciones = signal<Institucion[]>([]);
   loading = signal(false);
   
-  displayedColumns: string[] = ['institucion', 'cargo', 'unidad', 'idiomaNativo', 'estado', 'acciones'];
+  displayedColumns: string[] = ['institucion', 'cargo', 'unidad', 'idiomaNativo', 'estado', 'estadoRegistro', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
+  private textFilter = '';
+  stateFilter: 'todos' | 'activos' | 'inactivos' = 'activos';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit() {
+    this.setupFilters();
     this.loadData();
+  }
+
+  setupFilters() {
+    this.dataSource.filterPredicate = (data: any, filterStr: string) => {
+      const filter = JSON.parse(filterStr || '{}');
+      const isActive = this.isActive(data);
+      const matchesState =
+        filter.state === 'todos' ||
+        (filter.state === 'activos' && isActive) ||
+        (filter.state === 'inactivos' && !isActive);
+      const normalized = [
+        data.institucionNombre,
+        data.denominacionCargo,
+        data.unidadPuesto,
+        data.formacion,
+        data.estado
+      ].join(' ').toLowerCase();
+      return matchesState && (!filter.text || normalized.includes(filter.text));
+    };
+    this.refreshFilter();
   }
 
   loadData() {
@@ -69,7 +94,7 @@ export class RequisitoListComponent implements OnInit {
     })
     .pipe(finalize(() => this.loading.set(false)))
     .subscribe(({ requisitos, instituciones }) => {
-      this.instituciones.set(instituciones);
+      this.instituciones.set(instituciones.filter(i => i.activo !== false));
       const mapped = requisitos.map(r => ({
         ...r,
         institucionNombre: instituciones.find(i => i.id === r.institucionId)?.nombre || 'Desconocida'
@@ -81,12 +106,24 @@ export class RequisitoListComponent implements OnInit {
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.textFilter = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.refreshFilter();
+  }
 
+  applyStateFilter(value: 'todos' | 'activos' | 'inactivos') {
+    this.stateFilter = value;
+    this.refreshFilter();
+  }
+
+  private refreshFilter() {
+    this.dataSource.filter = JSON.stringify({ text: this.textFilter, state: this.stateFilter });
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  isActive(requisito: RequisitoPuesto): boolean {
+    return requisito.activo !== false;
   }
 
   openForm(requisito?: RequisitoPuesto) {
@@ -118,6 +155,13 @@ export class RequisitoListComponent implements OnInit {
           this.loadData();
         });
       }
+    });
+  }
+
+  activate(id: string) {
+    this.repository.activate(id).subscribe(() => {
+      this.snackBar.open('Requisito reactivado', 'Cerrar', { duration: 3000 });
+      this.loadData();
     });
   }
 }

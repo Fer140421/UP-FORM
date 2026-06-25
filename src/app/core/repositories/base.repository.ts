@@ -6,4 +6,5 @@ export interface BaseRepository<T> {
   create(item: T): Observable<T>;
   update(id: string, item: Partial<T>): Observable<T>;
   delete(id: string): Observable<void>;
+  activate(id: string): Observable<T>;
 }

@@ -6,6 +6,14 @@
       <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Abogado" #input>
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
+    <mat-form-field appearance="outline" class="state-field">
+      <mat-label>Estado</mat-label>
+      <mat-select [value]="stateFilter" (selectionChange)="applyStateFilter($event.value)">
+        <mat-option value="activos">Activos</mat-option>
+        <mat-option value="inactivos">Inactivos</mat-option>
+        <mat-option value="todos">Todos</mat-option>
+      </mat-select>
+    </mat-form-field>
     <button mat-flat-button color="primary" (click)="openForm()">
       <mat-icon>add</mat-icon> Nuevo Cargo
     </button>
@@ -41,10 +49,19 @@
       </ng-container>
 
       <ng-container matColumnDef="estado">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Disponibilidad </th>
         <td mat-cell *matCellDef="let element">
           <span class="badge-status" [class.active]="element.estado === 'Activo'">
-            {{element.estado}}
+            {{ element.estado === 'Activo' ? 'Disponible' : 'Asignado' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estadoRegistro">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Registro </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="badge-status" [class.active]="isActive(element)">
+            {{ isActive(element) ? 'Activo' : 'Inactivo' }}
           </span>
         </td>
       </ng-container>
@@ -55,9 +72,15 @@
           <button mat-icon-button class="btn-edit" (click)="openForm(element)" matTooltip="Editar">
             <mat-icon>edit_note</mat-icon>
           </button>
-          <button mat-icon-button class="btn-delete" (click)="delete(element.id)" matTooltip="Eliminar">
-            <mat-icon>delete_sweep</mat-icon>
-          </button>
+          @if (isActive(element)) {
+            <button mat-icon-button class="btn-delete" (click)="delete(element.id)" matTooltip="Desactivar">
+              <mat-icon>delete_sweep</mat-icon>
+            </button>
+          } @else {
+            <button mat-icon-button class="btn-activate" (click)="activate(element.id)" matTooltip="Reactivar">
+              <mat-icon>restore</mat-icon>
+            </button>
+          }
         </td>
       </ng-container>
 

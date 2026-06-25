@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { ProfesionalRepository } from '../../../core/repositories/profesional.repository';
@@ -31,6 +32,7 @@ import { finalize, take } from 'rxjs/operators';
     MatProgressBarModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatPaginatorModule,
     MatSortModule
   ],
@@ -44,14 +46,31 @@ export class ProfesionalListComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   loading = signal(false);
-  displayedColumns: string[] = ['id', 'name', 'acciones'];
+  displayedColumns: string[] = ['id', 'name', 'estadoRegistro', 'acciones'];
   dataSource = new MatTableDataSource<Profesional>([]);
+  private textFilter = '';
+  stateFilter: 'todos' | 'activos' | 'inactivos' = 'activos';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit() {
+    this.setupFilters();
     this.loadData();
+  }
+
+  setupFilters() {
+    this.dataSource.filterPredicate = (data: Profesional, filterStr: string) => {
+      const filter = JSON.parse(filterStr || '{}');
+      const isActive = this.isActive(data);
+      const matchesState =
+        filter.state === 'todos' ||
+        (filter.state === 'activos' && isActive) ||
+        (filter.state === 'inactivos' && !isActive);
+      const normalized = `${data.id || ''} ${data.name || ''}`.toLowerCase();
+      return matchesState && (!filter.text || normalized.includes(filter.text));
+    };
+    this.refreshFilter();
   }
 
   loadData() {
@@ -75,12 +94,24 @@ export class ProfesionalListComponent implements OnInit {
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.textFilter = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.refreshFilter();
+  }
 
+  applyStateFilter(value: 'todos' | 'activos' | 'inactivos') {
+    this.stateFilter = value;
+    this.refreshFilter();
+  }
+
+  private refreshFilter() {
+    this.dataSource.filter = JSON.stringify({ text: this.textFilter, state: this.stateFilter });
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  isActive(profesional: Profesional): boolean {
+    return profesional.activo !== false;
   }
 
   openForm(profesional?: Profesional) {
@@ -117,6 +148,19 @@ export class ProfesionalListComponent implements OnInit {
             this.snackBar.open('Error al eliminar profesional', 'Cerrar', { duration: 3000 });
           }
         });
+      }
+    });
+  }
+
+  activate(id: string) {
+    this.repository.activate(id).subscribe({
+      next: () => {
+        this.snackBar.open('Profesional reactivado con Ã©xito', 'Cerrar', { duration: 3000 });
+        this.loadData();
+      },
+      error: err => {
+        console.error('ERROR ACTIVATING PROFESIONAL =>', err);
+        this.snackBar.open('Error al reactivar profesional', 'Cerrar', { duration: 3000 });
       }
     });
   }

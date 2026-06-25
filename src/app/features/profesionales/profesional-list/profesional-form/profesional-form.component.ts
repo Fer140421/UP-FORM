@@ -8,12 +8,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProfesionalRepository } from '../../../../core/repositories/profesional.repository';
 import { Profesional } from '../../../../core/models';
+import { NormalizeInputDirective } from '../../../../core/directives/normalize-input.directive';
 import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-profesional-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule, NormalizeInputDirective],
   templateUrl: './profesional-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

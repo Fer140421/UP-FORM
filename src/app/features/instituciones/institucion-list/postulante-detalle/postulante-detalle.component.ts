@@ -117,6 +117,9 @@ import { Postulante } from '../../../../core/models';
           @for (c of data.certificados; track $index) {
             <mat-list-item>
               <span matListItemTitle>{{ c.areaCapacitacion || c.nombre }}</span>
+              @if (c.nombreCurso) {
+                <span matListItemLine>Curso: {{ c.nombreCurso }}</span>
+              }
               <span matListItemLine>{{ c.institucion || c.descripcion }} ({{ c.fecha }})</span>
               <div matListItemMeta>
                 @if (isDownloadable(c.archivo)) {

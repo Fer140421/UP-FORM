@@ -36,7 +36,7 @@ export class AsignacionListComponent implements OnInit {
   private router = inject(Router);
 
   loading = signal(false);
-  displayedColumns: string[] = ['nombre', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'sigla', 'acciones'];
   dataSource = new MatTableDataSource<Institucion>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -54,7 +54,7 @@ export class AsignacionListComponent implements OnInit {
         finalize(() => this.loading.set(false))
       )
       .subscribe(insts => {
-        this.dataSource.data = insts;
+        this.dataSource.data = insts.filter(inst => inst.activo !== false);
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
       });

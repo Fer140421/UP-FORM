@@ -9,4 +9,8 @@ export class AsignacionRepository extends FirestoreRepository<Asignacion> {
   constructor() {
     super('asignaciones');
   }
+
+  override delete(id: string) {
+    return this.hardDelete(id);
+  }
 }

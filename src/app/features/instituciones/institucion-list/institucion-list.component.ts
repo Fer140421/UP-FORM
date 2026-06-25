@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { InstitucionRepository } from '../../../core/repositories/institucion.repository';
@@ -31,6 +32,7 @@ import { finalize, take } from 'rxjs/operators';
     MatProgressBarModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatPaginatorModule,
     MatSortModule
   ],
@@ -44,14 +46,31 @@ export class InstitucionListComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   loading = signal(false);
-  displayedColumns: string[] = ['id', 'nombre', 'acciones'];
+  displayedColumns: string[] = ['id', 'nombre', 'sigla', 'estadoRegistro', 'acciones'];
   dataSource = new MatTableDataSource<Institucion>([]);
+  private textFilter = '';
+  stateFilter: 'todos' | 'activos' | 'inactivos' = 'activos';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit() {
+    this.setupFilters();
     this.loadData();
+  }
+
+  setupFilters() {
+    this.dataSource.filterPredicate = (data: Institucion, filterStr: string) => {
+      const filter = JSON.parse(filterStr || '{}');
+      const isActive = this.isActive(data);
+      const matchesState =
+        filter.state === 'todos' ||
+        (filter.state === 'activos' && isActive) ||
+        (filter.state === 'inactivos' && !isActive);
+      const normalized = `${data.id || ''} ${data.nombre || ''} ${data.sigla || ''}`.toLowerCase();
+      return matchesState && (!filter.text || normalized.includes(filter.text));
+    };
+    this.refreshFilter();
   }
 
   loadData() {
@@ -74,12 +93,24 @@ export class InstitucionListComponent implements OnInit {
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.textFilter = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.refreshFilter();
+  }
 
+  applyStateFilter(value: 'todos' | 'activos' | 'inactivos') {
+    this.stateFilter = value;
+    this.refreshFilter();
+  }
+
+  private refreshFilter() {
+    this.dataSource.filter = JSON.stringify({ text: this.textFilter, state: this.stateFilter });
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  isActive(institucion: Institucion): boolean {
+    return institucion.activo !== false;
   }
 
   openForm(institucion?: Institucion) {
@@ -111,6 +142,13 @@ export class InstitucionListComponent implements OnInit {
           this.loadData();
         });
       }
+    });
+  }
+
+  activate(id: string) {
+    this.repository.activate(id).subscribe(() => {
+      this.snackBar.open('InstituciÃ³n reactivada', 'Cerrar', { duration: 3000 });
+      this.loadData();
     });
   }
 }

@@ -7,12 +7,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { InstitucionRepository } from '../../../../core/repositories/institucion.repository';
 import { Institucion } from '../../../../core/models';
+import { NormalizeInputDirective } from '../../../../core/directives/normalize-input.directive';
 import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-institucion-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule, NormalizeInputDirective],
   templateUrl: './institucion-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -25,7 +26,8 @@ export class InstitucionFormComponent {
   loading = signal(false);
 
   form = this.fb.group({
-    nombre: [this.data?.nombre || '', Validators.required]
+    nombre: [this.data?.nombre || '', Validators.required],
+    sigla: [this.data?.sigla || '']
   });
 
   save() {

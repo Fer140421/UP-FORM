@@ -217,6 +217,7 @@ export class PostulanteAsignarComponent implements OnInit {
       )
       .subscribe(data => {
         const candidatos = data
+          .filter(postulante => postulante.activo !== false)
           .map(postulante => this.evaluarCandidato(postulante))
           .filter((postulante): postulante is CandidatoEvaluado => !!postulante);
 

@@ -28,6 +28,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { forkJoin, Observable, of } from 'rxjs';
 import { switchMap, catchError, map, take, finalize } from 'rxjs/operators';
 import { Postulante, RequisitoPuesto, Profesional } from '../../../core/models';
+import { NormalizeInputDirective } from '../../../core/directives/normalize-input.directive';
 
 @Component({
   selector: 'app-postulante-wizard',
@@ -51,7 +52,8 @@ import { Postulante, RequisitoPuesto, Profesional } from '../../../core/models';
     MatTooltipModule,
     MatListModule,
     MatCheckboxModule,
-    MatChipsModule 
+    MatChipsModule,
+    NormalizeInputDirective
 ],
   templateUrl: './postulante-wizard.component.html',
   styleUrl: './postulante-wizard.component.css',
@@ -246,6 +248,10 @@ export class PostulanteWizardComponent {
     participacionElectoral: [[] as string[]] // Nuevo FormGroup para participación electoral
   });
 
+  relocationForm = this.fb.group({
+    disponibilidadTraslado: ['', Validators.required]
+  });
+
   puestosDisponibles = signal<(RequisitoPuesto & { institucionNombre: string })[]>([]);
   searchTerm = signal('');
 
@@ -275,7 +281,7 @@ export class PostulanteWizardComponent {
     this.profesionalRepository.getAll()
       .pipe(take(1))
       .subscribe({
-        next: (list) => this.profesionales.set(list),
+        next: (list) => this.profesionales.set(list.filter(prof => prof.activo !== false)),
         error: (err) => console.error('Error al cargar profesionales:', err)
       });
   }
@@ -307,6 +313,7 @@ export class PostulanteWizardComponent {
     this.funcionesForm.patchValue({ puestoId: data.puestoId });
     this.militaryServiceForm.patchValue({ poseeLibreta: data.poseeLibreta, archivo: data.archivo });
     this.electoralForm.patchValue({ participacionElectoral: data.participacionElectoral || [] });
+    this.relocationForm.patchValue({ disponibilidadTraslado: data.disponibilidadTraslado || '' });
 
     // Clear arrays first
     while (this.certificados.length !== 0) this.certificados.removeAt(0);
@@ -322,6 +329,7 @@ export class PostulanteWizardComponent {
         fecha: [c.fecha ? DateTime.fromISO(c.fecha) : null, Validators.required],
         archivo: [c.archivo || 'archivo_defecto.pdf', Validators.required],
         areaCapacitacion: [c.areaCapacitacion || c.nombre || '', Validators.required],
+        nombreCurso: [c.nombreCurso || '', Validators.required],
         institucion: [c.institucion || c.descripcion || '', Validators.required]
       });
       group.get('areaCapacitacion')?.valueChanges.subscribe(val => {
@@ -394,7 +402,13 @@ export class PostulanteWizardComponent {
       reqs: this.reqRepository.getAll().pipe(take(1)),
       insts: this.instRepository.getAll().pipe(take(1))
     }).subscribe(({ reqs, insts }) => {
-      const activeReqs = reqs.filter(r => r.estado === 'Activo' || r.id === this.funcionesForm.get('puestoId')?.value);
+      const activeInstitucionIds = new Set(insts.filter(i => i.activo !== false).map(i => i.id));
+      const currentPuestoId = this.funcionesForm.get('puestoId')?.value;
+      const activeReqs = reqs.filter(r =>
+        r.activo !== false &&
+        activeInstitucionIds.has(r.institucionId) &&
+        (r.estado === 'Activo' || r.id === currentPuestoId)
+      );
       const mapped = activeReqs.map(r => ({
         ...r,
         institucionNombre: insts.find(i => i.id === r.institucionId)?.nombre || 'Desconocida'
@@ -437,6 +451,7 @@ export class PostulanteWizardComponent {
       fecha: [null as DateTime | null, Validators.required],
       archivo: ['archivo_defecto.pdf', Validators.required],
       areaCapacitacion: ['', Validators.required],
+      nombreCurso: ['', Validators.required],
       institucion: ['', Validators.required]
     });
     group.get('areaCapacitacion')?.valueChanges.subscribe(val => {
@@ -655,7 +670,8 @@ export class PostulanteWizardComponent {
       ...this.educationForm.value,
       ...this.experienceForm.value,
       ...this.militaryServiceForm.value,
-      ...this.electoralForm.value
+      ...this.electoralForm.value,
+      ...this.relocationForm.value
     };
 
     // Replace filenames with Cloudinary URLs
@@ -773,14 +789,14 @@ export class PostulanteWizardComponent {
     control?.updateValueAndValidity();
   }
 
-  getStepNumber(step: 'personal' | 'nativeLanguage' | 'certificates' | 'education' | 'experience' | 'military' | 'electoral' | 'summary'): number {
+  getStepNumber(step: 'personal' | 'nativeLanguage' | 'certificates' | 'education' | 'experience' | 'military' | 'electoral' | 'relocation' | 'summary'): number {
     const steps = ['personal', 'nativeLanguage', 'certificates', 'education', 'experience'];
 
     if (this.isMilitaryStepVisible()) {
       steps.push('military');
     }
 
-    steps.push('electoral', 'summary');
+    steps.push('electoral', 'relocation', 'summary');
     return steps.indexOf(step) + 1;
   }
 
@@ -824,5 +840,9 @@ export class PostulanteWizardComponent {
   getParticipacionElectoralResumen(): string {
     const list = this.electoralForm.get('participacionElectoral')?.value || [];
     return list.join(', ') || 'Ninguna';
+  }
+
+  getDisponibilidadTrasladoResumen(): string {
+    return this.relocationForm.get('disponibilidadTraslado')?.value || 'No registrada';
   }
 }

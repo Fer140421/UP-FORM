@@ -196,7 +196,7 @@ export class InstitucionDetalleComponent implements OnInit {
       asigs: this.asigRepository.getAll().pipe(take(1))
     }).pipe(finalize(() => this.loading.set(false)))
     .subscribe(({ reqs, asigs }) => {
-      const mapped = reqs.map(r => ({
+      const mapped = reqs.filter(r => r.activo !== false).map(r => ({
         ...r,
         asignacion: asigs.find(a => a.requisitoId === r.id)
       }));

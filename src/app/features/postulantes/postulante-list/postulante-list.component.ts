@@ -79,6 +79,15 @@ import { forkJoin, of } from 'rxjs';
             </mat-form-field>
 
             <mat-form-field appearance="outline">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName="estadoRegistro">
+                <mat-option value="activos">Activos</mat-option>
+                <mat-option value="inactivos">Inactivos</mat-option>
+                <mat-option value="todos">Todos</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
               <mat-label>Participación Electoral</mat-label>
               <mat-select formControlName="participacionElectoral" multiple>
                 <mat-option value="Primera vuelta elecciones nacionales">1ra Vuelta Nacionales</mat-option>
@@ -138,6 +147,15 @@ import { forkJoin, of } from 'rxjs';
                 <td mat-cell *matCellDef="let row"> {{row.localidad}} </td>
               </ng-container>
 
+              <ng-container matColumnDef="estadoRegistro">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="badge-status" [class.active]="isActive(row)">
+                    {{ isActive(row) ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+              </ng-container>
+
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef> Acciones </th>
                 <td mat-cell *matCellDef="let row">
@@ -148,9 +166,15 @@ import { forkJoin, of } from 'rxjs';
                     <button mat-icon-button color="accent" matTooltip="Editar" (click)="editar(row)">
                       <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="eliminar(row)">
-                      <mat-icon>delete</mat-icon>
-                    </button>
+                    @if (isActive(row)) {
+                      <button mat-icon-button color="warn" matTooltip="Desactivar" (click)="eliminar(row)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    } @else {
+                      <button mat-icon-button class="btn-activate" matTooltip="Reactivar" (click)="activar(row)">
+                        <mat-icon>restore</mat-icon>
+                      </button>
+                    }
                   </div>
                 </td>
               </ng-container>
@@ -179,8 +203,21 @@ import { forkJoin, of } from 'rxjs';
       table { width: 100%; }
       .profile-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin: 4px 0; border: 1px solid #ddd; }
       .action-buttons { display: flex; gap: 4px; }
+      .badge-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background-color: #fee2e2;
+        color: #ef4444;
+      }
+      .badge-status.active {
+        background-color: #d1fae5;
+        color: #10b981;
+      }
+      .btn-activate { color: #10b981; }
       .mat-column-foto { width: 60px; }
-      .mat-column-acciones { width: 150px; }
+      .mat-column-acciones { width: 160px; }
     </style>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -197,7 +234,7 @@ export class PostulanteListComponent implements OnInit {
 
   loading = signal(false);
   profesionales = signal<Profesional[]>([]); // Nuevo
-  displayedColumns: string[] = ['foto', 'carnet', 'nombres', 'celular', 'localidad', 'acciones'];
+  displayedColumns: string[] = ['foto', 'carnet', 'nombres', 'celular', 'localidad', 'estadoRegistro', 'acciones'];
   dataSource = new MatTableDataSource<Postulante>([]);
 
   // Formulario reactivo para filtros combinables
@@ -205,6 +242,7 @@ export class PostulanteListComponent implements OnInit {
     carnet: [''],
     nombreCompleto: [''],
     profesion: [''],
+    estadoRegistro: ['activos'],
     participacionElectoral: [[] as string[]]
   });
 
@@ -235,7 +273,7 @@ export class PostulanteListComponent implements OnInit {
     this.profesionalRepository.getAll()
       .pipe(take(1))
       .subscribe(list => {
-        this.profesionales.set(list);
+        this.profesionales.set(list.filter(prof => prof.activo !== false));
       });
   }
 
@@ -259,6 +297,14 @@ export class PostulanteListComponent implements OnInit {
         }
       }
 
+      const isActive = this.isActive(data);
+      if (filterObj.estadoRegistro === 'activos' && !isActive) {
+        return false;
+      }
+      if (filterObj.estadoRegistro === 'inactivos' && isActive) {
+        return false;
+      }
+
       if (filterObj.participacionElectoral && filterObj.participacionElectoral.length > 0) {
         const matchesAny = filterObj.participacionElectoral.some((opt: string) => 
           data.participacionElectoral?.includes(opt)
@@ -276,9 +322,17 @@ export class PostulanteListComponent implements OnInit {
         carnet: val.carnet || '',
         nombreCompleto: val.nombreCompleto || '',
         profesion: val.profesion || '',
+        estadoRegistro: val.estadoRegistro || 'activos',
         participacionElectoral: val.participacionElectoral || []
       };
       this.dataSource.filter = JSON.stringify(filterObj);
+    });
+    this.dataSource.filter = JSON.stringify({
+      carnet: '',
+      nombreCompleto: '',
+      profesion: '',
+      estadoRegistro: 'activos',
+      participacionElectoral: []
     });
   }
 
@@ -307,6 +361,23 @@ export class PostulanteListComponent implements OnInit {
 
   editar(postulante: Postulante) {
     this.router.navigate(['/dashboard/postulantes/editar', postulante.id]);
+  }
+
+  isActive(postulante: Postulante): boolean {
+    return postulante.activo !== false;
+  }
+
+  activar(postulante: Postulante) {
+    this.repository.activate(postulante.id).subscribe({
+      next: () => {
+        this.snackBar.open('Postulante reactivado correctamente', 'Cerrar', { duration: 3000 });
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error al reactivar postulante:', err);
+        this.snackBar.open('Error al reactivar postulante', 'Cerrar', { duration: 3000 });
+      }
+    });
   }
 
   eliminar(postulante: Postulante) {

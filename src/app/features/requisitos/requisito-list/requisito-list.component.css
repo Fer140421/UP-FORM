@@ -19,6 +19,11 @@
   margin-bottom: -1.25em;
 }
 
+.state-field {
+  width: 150px;
+  margin-bottom: -1.25em;
+}
+
 .table-card {
   padding: 0 !important;
   overflow: hidden;
@@ -77,6 +82,10 @@
 
 .btn-delete {
   color: #ef4444;
+}
+
+.btn-activate {
+  color: #10b981;
 }
 
 .empty-cell {
