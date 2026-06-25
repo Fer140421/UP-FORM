@@ -68,9 +68,14 @@ import { forkJoin } from 'rxjs';
             <td mat-cell *matCellDef="let element"> {{element.formacion}} </td>
           </ng-container>
 
-          <ng-container matColumnDef="experiencia">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia </th>
+          <ng-container matColumnDef="experienciaLaboral">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia general </th>
             <td mat-cell *matCellDef="let element"> {{element.experienciaLaboral}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="experienciaEspecifica">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia especÃ­fica </th>
+            <td mat-cell *matCellDef="let element"> {{element.experienciaEspecifica}} </td>
           </ng-container>
 
           <ng-container matColumnDef="idiomaNativo">
@@ -179,7 +184,7 @@ export class InstitucionDetalleComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   loading = signal(false);
-  displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experiencia', 'idiomaNativo', 'estado', 'acciones'];
+  displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experienciaLaboral', 'experienciaEspecifica', 'idiomaNativo', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

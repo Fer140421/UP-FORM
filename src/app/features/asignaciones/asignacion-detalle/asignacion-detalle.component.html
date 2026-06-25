@@ -36,9 +36,14 @@
           <td mat-cell *matCellDef="let element"> {{element.formacion}} </td>
         </ng-container>
 
-        <ng-container matColumnDef="experiencia">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia </th>
+        <ng-container matColumnDef="experienciaLaboral">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia general </th>
           <td mat-cell *matCellDef="let element"> {{element.experienciaLaboral}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="experienciaEspecifica">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Experiencia especÃ­fica </th>
+          <td mat-cell *matCellDef="let element"> {{element.experienciaEspecifica}} </td>
         </ng-container>
 
         <ng-container matColumnDef="idiomaNativo">

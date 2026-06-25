@@ -56,7 +56,7 @@ export class AsignacionDetalleComponent implements OnInit {
 
   institucion = signal<Institucion | null>(null);
   loading = signal(false);
-  displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experiencia', 'idiomaNativo', 'estado', 'acciones'];
+  displayedColumns: string[] = ['cargo', 'unidad', 'formacion', 'experienciaLaboral', 'experienciaEspecifica', 'idiomaNativo', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
