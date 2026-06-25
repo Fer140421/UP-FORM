@@ -424,7 +424,9 @@
             <h4>Servicio Militar y Participación</h4>
             @if (isMilitaryStepVisible()) {
               <div class="summary-row"><span class="label">Libreta militar</span><span class="value">{{ militaryServiceForm.get('poseeLibreta')?.value }}</span></div>
-              <div class="summary-row"><span class="label">Archivo</span><span class="value">{{ getArchivoResumen(militaryServiceForm.get('archivo')?.value) }}</span></div>
+              <!-- Carga de libreta militar deshabilitada. Mantener para reactivar si vuelve a solicitarse.
+                <div class="summary-row"><span class="label">Archivo</span><span class="value">{{ getArchivoResumen(militaryServiceForm.get('archivo')?.value) }}</span></div>
+              -->
             } @else {
               <div class="summary-row"><span class="label">Servicio militar</span><span class="value">No aplica</span></div>
             }
@@ -678,7 +680,7 @@
             <div class="upload-illustration">
               <mat-icon>military_tech</mat-icon>
               <h3>Libreta Militar</h3>
-              <p>Indique si cuenta con libreta de servicio militar y adjunte el documento si corresponde.</p>
+              <p>Indique si cuenta con libreta de servicio militar.</p>
             </div>
 
             <div class="military-selection">
@@ -688,21 +690,23 @@
               </mat-radio-group>
             </div>
 
-            @if (militaryServiceForm.get('poseeLibreta')?.value === 'Si') {
-              <div class="file-drop-zone large animate-fade-in" [class.has-file]="militaryServiceForm.get('archivo')?.value">
-                <input type="file" #milInput hidden (change)="onFileChange($event, 'archivo', militaryServiceForm)" accept="application/pdf">
-                
-                <div class="upload-info">
-                  <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
-                  <span>{{ militaryServiceForm.get('archivo')?.value ? 'Libreta adjunta correctamente' : 'No se ha seleccionado archivo' }}</span>
-                </div>
+            <!-- Carga de libreta militar deshabilitada. Mantener para reactivar si vuelve a solicitarse.
+              @if (militaryServiceForm.get('poseeLibreta')?.value === 'Si') {
+                <div class="file-drop-zone large animate-fade-in" [class.has-file]="militaryServiceForm.get('archivo')?.value">
+                  <input type="file" #milInput hidden (change)="onFileChange($event, 'archivo', militaryServiceForm)" accept="application/pdf">
+                  
+                  <div class="upload-info">
+                    <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'task' : 'cloud_upload' }}</mat-icon>
+                    <span>{{ militaryServiceForm.get('archivo')?.value ? 'Libreta adjunta correctamente' : 'No se ha seleccionado archivo' }}</span>
+                  </div>
 
-                <button mat-flat-button color="primary" type="button" (click)="milInput.click()">
-                  <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'sync' : 'upload_file' }}</mat-icon>
-                  {{ militaryServiceForm.get('archivo')?.value ? 'Cambiar archivo' : 'Subir PDF de Libreta' }}
-                </button>
-              </div>
-            }
+                  <button mat-flat-button color="primary" type="button" (click)="milInput.click()">
+                    <mat-icon>{{ militaryServiceForm.get('archivo')?.value ? 'sync' : 'upload_file' }}</mat-icon>
+                    {{ militaryServiceForm.get('archivo')?.value ? 'Cambiar archivo' : 'Subir PDF de Libreta' }}
+                  </button>
+                </div>
+              }
+            -->
           </div>
 
           <div class="step-actions">
@@ -925,7 +929,9 @@
               <h4>Servicio Militar y Participación</h4>
               @if (isMilitaryStepVisible()) {
                 <div class="summary-row"><span class="label">Libreta militar</span><span class="value">{{ militaryServiceForm.get('poseeLibreta')?.value }}</span></div>
-                <div class="summary-row"><span class="label">Archivo</span><span class="value">{{ getArchivoResumen(militaryServiceForm.get('archivo')?.value) }}</span></div>
+                <!-- Carga de libreta militar deshabilitada. Mantener para reactivar si vuelve a solicitarse.
+                  <div class="summary-row"><span class="label">Archivo</span><span class="value">{{ getArchivoResumen(militaryServiceForm.get('archivo')?.value) }}</span></div>
+                -->
               } @else {
                 <div class="summary-row"><span class="label">Servicio militar</span><span class="value">No aplica</span></div>
               }

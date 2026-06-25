@@ -311,7 +311,12 @@ export class PostulanteWizardComponent {
     this.identityDocForm.patchValue({ documentoIdentidad: data.documentoIdentidad || 'documento_defecto.pdf' });
     this.nativeLanguageForm.patchValue({ certificadoLenguaOriginaria: data.certificadoLenguaOriginaria || 'certificado_defecto.pdf' });
     this.funcionesForm.patchValue({ puestoId: data.puestoId });
-    this.militaryServiceForm.patchValue({ poseeLibreta: data.poseeLibreta, archivo: data.archivo });
+    this.militaryServiceForm.patchValue({
+      poseeLibreta: data.poseeLibreta,
+      // Carga de libreta militar deshabilitada. Mantener para reactivar si vuelve a solicitarse.
+      // archivo: data.archivo
+      archivo: ''
+    });
     this.electoralForm.patchValue({ participacionElectoral: data.participacionElectoral || [] });
     this.relocationForm.patchValue({ disponibilidadTraslado: data.disponibilidadTraslado || '' });
 
@@ -611,17 +616,22 @@ export class PostulanteWizardComponent {
 
     if (genero === 'Masculino') {
       poseeLibreta?.setValidators(Validators.required);
-      if (poseeLibreta?.value === 'Si') {
-        archivo?.setValidators(Validators.required);
-      } else {
-        archivo?.clearValidators();
-      }
+      // Carga de libreta militar deshabilitada. Mantener para reactivar si vuelve a solicitarse.
+      // if (poseeLibreta?.value === 'Si') {
+      //   archivo?.setValidators(Validators.required);
+      // } else {
+      //   archivo?.clearValidators();
+      // }
+      archivo?.clearValidators();
+      archivo?.setValue('', { emitEvent: false });
+      this.filesToUpload.delete('archivo');
     } else {
       poseeLibreta?.clearValidators();
       archivo?.clearValidators();
       // Auto-populate for female applicants to pass form step control validations
       poseeLibreta?.setValue('No', { emitEvent: false });
       archivo?.setValue('', { emitEvent: false });
+      this.filesToUpload.delete('archivo');
     }
     poseeLibreta?.updateValueAndValidity({ emitEvent: false });
     archivo?.updateValueAndValidity({ emitEvent: false });
@@ -704,7 +714,9 @@ export class PostulanteWizardComponent {
     if (fileUrls['foto']) processed.foto = fileUrls['foto'];
     if (fileUrls['documentoIdentidad']) processed.documentoIdentidad = fileUrls['documentoIdentidad'];
     if (fileUrls['certificadoLenguaOriginaria']) processed.certificadoLenguaOriginaria = fileUrls['certificadoLenguaOriginaria'];
-    if (fileUrls['archivo']) processed.archivo = fileUrls['archivo']; // military service
+    // Carga de libreta militar deshabilitada. Mantener para reactivar si vuelve a solicitarse.
+    // if (fileUrls['archivo']) processed.archivo = fileUrls['archivo']; // military service
+    delete processed.archivo;
 
     // Arrays
     if (processed.certificados) {
